@@ -1,0 +1,6 @@
+<centerlink scriptid="custlink_sdb_inv_maestro">
+  <center>ACCOUNTCENTER</center>
+  <centercategory>[scriptid=custcentercategory_sdb_inv_listados]</centercategory>
+  <label>Inversiones</label>
+  <url>/app/common/custom/custrecordentrylist.nl?rectype=1727</url>
+</centerlink>

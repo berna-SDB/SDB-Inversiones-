@@ -1,0 +1,24 @@
+<customlist scriptid="customlist_sdb_inv_tipo_operacion">
+  <description>Tipo de operación sobre la inversión</description>
+  <isinactive>F</isinactive>
+  <ismatrixoption>F</ismatrixoption>
+  <isordered>T</isordered>
+  <name>SDB | Tipo de Operación</name>
+  <customvalues>
+    <customvalue scriptid="val_compra">
+      <abbreviation>C</abbreviation>
+      <isinactive>F</isinactive>
+      <value>Compra</value>
+    </customvalue>
+    <customvalue scriptid="val_rescate">
+      <abbreviation>R</abbreviation>
+      <isinactive>F</isinactive>
+      <value>Rescate</value>
+    </customvalue>
+    <customvalue scriptid="val_revaluacion">
+      <abbreviation>R</abbreviation>
+      <isinactive>F</isinactive>
+      <value>Revaluación</value>
+    </customvalue>
+  </customvalues>
+</customlist>

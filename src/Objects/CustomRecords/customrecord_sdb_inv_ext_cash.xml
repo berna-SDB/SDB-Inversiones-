@@ -1,0 +1,212 @@
+<customrecordtype scriptid="customrecord_sdb_inv_ext_cash">
+  <accesstype>CUSTRECORDENTRYPERM</accesstype>
+  <allowattachments>F</allowattachments>
+  <allowinlinedeleting>F</allowinlinedeleting>
+  <allowinlinedetaching>F</allowinlinedetaching>
+  <allowinlineediting>T</allowinlineediting>
+  <allowmobileaccess>F</allowmobileaccess>
+  <allownumberingoverride>F</allownumberingoverride>
+  <allowquickadd>T</allowquickadd>
+  <allowquicksearch>T</allowquicksearch>
+  <allowuiaccess>T</allowuiaccess>
+  <description>Saldo de cash por moneda dentro de una cuenta comitente del exterior</description>
+  <enabledle>T</enabledle>
+  <enablekeywords>T</enablekeywords>
+  <enablenametranslation>F</enablenametranslation>
+  <enablenumbering>F</enablenumbering>
+  <enableoptimisticlocking>T</enableoptimisticlocking>
+  <enablesystemnotes>T</enablesystemnotes>
+  <hierarchical>F</hierarchical>
+  <iconbuiltin>T</iconbuiltin>
+  <includeinsearchmenu>T</includeinsearchmenu>
+  <includename>T</includename>
+  <isinactive>F</isinactive>
+  <isordered>F</isordered>
+  <recordname>SDB | Cash Exterior</recordname>
+  <showcreationdate>F</showcreationdate>
+  <showcreationdateonlist>F</showcreationdateonlist>
+  <showid>F</showid>
+  <showlastmodified>F</showlastmodified>
+  <showlastmodifiedonlist>F</showlastmodifiedonlist>
+  <shownotes>T</shownotes>
+  <showowner>F</showowner>
+  <showownerallowchange>F</showownerallowchange>
+  <showowneronlist>F</showowneronlist>
+  <customrecordcustomfields>
+    <customrecordcustomfield scriptid="custrecord_sdb_extcash_comitente">
+      <accesslevel>2</accesslevel>
+      <allowquickadd>F</allowquickadd>
+      <applyformatting>F</applyformatting>
+      <checkspelling>F</checkspelling>
+      <defaultchecked>F</defaultchecked>
+      <displaytype>NORMAL</displaytype>
+      <enabletextenhance>F</enabletextenhance>
+      <encryptatrest>F</encryptatrest>
+      <fieldtype>SELECT</fieldtype>
+      <globalsearch>F</globalsearch>
+      <isformula>F</isformula>
+      <ismandatory>T</ismandatory>
+      <isparent>F</isparent>
+      <label>Cuenta Comitente</label>
+      <onparentdelete>NO_ACTION</onparentdelete>
+      <rolerestrict>F</rolerestrict>
+      <searchlevel>2</searchlevel>
+      <selectrecordtype>[scriptid=customrecord_sdb_inv_ext_comitente]</selectrecordtype>
+      <showinlist>T</showinlist>
+      <storevalue>T</storevalue>
+    </customrecordcustomfield>
+    <customrecordcustomfield scriptid="custrecord_sdb_extcash_moneda">
+      <accesslevel>2</accesslevel>
+      <allowquickadd>F</allowquickadd>
+      <applyformatting>F</applyformatting>
+      <checkspelling>F</checkspelling>
+      <defaultchecked>F</defaultchecked>
+      <displaytype>NORMAL</displaytype>
+      <enabletextenhance>F</enabletextenhance>
+      <encryptatrest>F</encryptatrest>
+      <fieldtype>SELECT</fieldtype>
+      <globalsearch>F</globalsearch>
+      <isformula>F</isformula>
+      <ismandatory>T</ismandatory>
+      <isparent>F</isparent>
+      <label>Moneda</label>
+      <onparentdelete>NO_ACTION</onparentdelete>
+      <rolerestrict>F</rolerestrict>
+      <searchlevel>2</searchlevel>
+      <selectrecordtype>-122</selectrecordtype>
+      <showinlist>T</showinlist>
+      <storevalue>T</storevalue>
+    </customrecordcustomfield>
+    <customrecordcustomfield scriptid="custrecord_sdb_extcash_cta_contable">
+      <accesslevel>2</accesslevel>
+      <allowquickadd>F</allowquickadd>
+      <applyformatting>F</applyformatting>
+      <checkspelling>F</checkspelling>
+      <defaultchecked>F</defaultchecked>
+      <description>Cuenta contable de bancos del exterior asociada a este cash</description>
+      <displaytype>NORMAL</displaytype>
+      <enabletextenhance>F</enabletextenhance>
+      <encryptatrest>F</encryptatrest>
+      <fieldtype>SELECT</fieldtype>
+      <globalsearch>F</globalsearch>
+      <isformula>F</isformula>
+      <ismandatory>T</ismandatory>
+      <isparent>F</isparent>
+      <label>Cuenta Contable</label>
+      <onparentdelete>NO_ACTION</onparentdelete>
+      <rolerestrict>F</rolerestrict>
+      <searchlevel>2</searchlevel>
+      <selectrecordtype>-112</selectrecordtype>
+      <showinlist>F</showinlist>
+      <storevalue>T</storevalue>
+    </customrecordcustomfield>
+    <customrecordcustomfield scriptid="custrecord_sdb_extcash_cta_dif_cam">
+      <accesslevel>2</accesslevel>
+      <allowquickadd>F</allowquickadd>
+      <applyformatting>F</applyformatting>
+      <checkspelling>F</checkspelling>
+      <defaultchecked>F</defaultchecked>
+      <description>Cuenta de resultado para diferencia de cambio del cash</description>
+      <displaytype>NORMAL</displaytype>
+      <enabletextenhance>F</enabletextenhance>
+      <encryptatrest>F</encryptatrest>
+      <fieldtype>SELECT</fieldtype>
+      <globalsearch>F</globalsearch>
+      <isformula>F</isformula>
+      <ismandatory>F</ismandatory>
+      <isparent>F</isparent>
+      <label>Cuenta Diferencia de Cambio</label>
+      <onparentdelete>NO_ACTION</onparentdelete>
+      <rolerestrict>F</rolerestrict>
+      <searchlevel>2</searchlevel>
+      <selectrecordtype>-112</selectrecordtype>
+      <showinlist>F</showinlist>
+      <storevalue>T</storevalue>
+    </customrecordcustomfield>
+    <customrecordcustomfield scriptid="custrecord_sdb_extcash_saldo_actual">
+      <accesslevel>2</accesslevel>
+      <allowquickadd>F</allowquickadd>
+      <applyformatting>F</applyformatting>
+      <checkspelling>F</checkspelling>
+      <defaultchecked>F</defaultchecked>
+      <description>Saldo de cierre actualizado en cada carga (en moneda original)</description>
+      <displaytype>NORMAL</displaytype>
+      <enabletextenhance>F</enabletextenhance>
+      <encryptatrest>F</encryptatrest>
+      <fieldtype>CURRENCY</fieldtype>
+      <globalsearch>F</globalsearch>
+      <isformula>F</isformula>
+      <ismandatory>F</ismandatory>
+      <isparent>F</isparent>
+      <label>Saldo Actual</label>
+      <onparentdelete>NO_ACTION</onparentdelete>
+      <rolerestrict>F</rolerestrict>
+      <searchlevel>2</searchlevel>
+      <showinlist>T</showinlist>
+      <storevalue>T</storevalue>
+    </customrecordcustomfield>
+    <customrecordcustomfield scriptid="custrecord_sdb_extcash_fecha_actual">
+      <accesslevel>2</accesslevel>
+      <allowquickadd>F</allowquickadd>
+      <applyformatting>F</applyformatting>
+      <checkspelling>F</checkspelling>
+      <defaultchecked>F</defaultchecked>
+      <displaytype>NORMAL</displaytype>
+      <enabletextenhance>F</enabletextenhance>
+      <encryptatrest>F</encryptatrest>
+      <fieldtype>DATE</fieldtype>
+      <globalsearch>F</globalsearch>
+      <isformula>F</isformula>
+      <ismandatory>F</ismandatory>
+      <isparent>F</isparent>
+      <label>Fecha &#218;ltimo Saldo</label>
+      <onparentdelete>NO_ACTION</onparentdelete>
+      <rolerestrict>F</rolerestrict>
+      <searchlevel>2</searchlevel>
+      <showinlist>T</showinlist>
+      <storevalue>T</storevalue>
+    </customrecordcustomfield>
+    <customrecordcustomfield scriptid="custrecord_sdb_extcash_tc">
+      <accesslevel>2</accesslevel>
+      <allowquickadd>F</allowquickadd>
+      <applyformatting>F</applyformatting>
+      <checkspelling>F</checkspelling>
+      <defaultchecked>F</defaultchecked>
+      <displaytype>NORMAL</displaytype>
+      <enabletextenhance>F</enabletextenhance>
+      <encryptatrest>F</encryptatrest>
+      <fieldtype>FLOAT</fieldtype>
+      <globalsearch>F</globalsearch>
+      <isformula>F</isformula>
+      <ismandatory>F</ismandatory>
+      <isparent>F</isparent>
+      <label>Tipo de Cambio</label>
+      <onparentdelete>NO_ACTION</onparentdelete>
+      <rolerestrict>F</rolerestrict>
+      <searchlevel>2</searchlevel>
+      <showinlist>F</showinlist>
+      <storevalue>T</storevalue>
+    </customrecordcustomfield>
+    <customrecordcustomfield scriptid="custrecord_sdb_extcash_saldo_func">
+      <accesslevel>2</accesslevel>
+      <allowquickadd>F</allowquickadd>
+      <applyformatting>F</applyformatting>
+      <checkspelling>F</checkspelling>
+      <defaultchecked>F</defaultchecked>
+      <displaytype>NORMAL</displaytype>
+      <enabletextenhance>F</enabletextenhance>
+      <encryptatrest>F</encryptatrest>
+      <fieldtype>CURRENCY</fieldtype>
+      <globalsearch>F</globalsearch>
+      <isformula>F</isformula>
+      <ismandatory>F</ismandatory>
+      <isparent>F</isparent>
+      <label>Saldo Funcional</label>
+      <onparentdelete>NO_ACTION</onparentdelete>
+      <rolerestrict>F</rolerestrict>
+      <searchlevel>2</searchlevel>
+      <showinlist>T</showinlist>
+      <storevalue>T</storevalue>
+    </customrecordcustomfield>
+  </customrecordcustomfields>
+</customrecordtype>

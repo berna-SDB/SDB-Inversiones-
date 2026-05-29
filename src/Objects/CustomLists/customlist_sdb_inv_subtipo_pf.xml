@@ -1,0 +1,19 @@
+<customlist scriptid="customlist_sdb_inv_subtipo_pf">
+  <description>Subtipo de Plazo Fijo</description>
+  <isinactive>F</isinactive>
+  <ismatrixoption>F</ismatrixoption>
+  <isordered>T</isordered>
+  <name>SDB | Subtipo Plazo Fijo</name>
+  <customvalues>
+    <customvalue scriptid="val_tradicional">
+      <abbreviation>T</abbreviation>
+      <isinactive>F</isinactive>
+      <value>Tradicional</value>
+    </customvalue>
+    <customvalue scriptid="val_precancelable">
+      <abbreviation>P</abbreviation>
+      <isinactive>F</isinactive>
+      <value>Precancelable</value>
+    </customvalue>
+  </customvalues>
+</customlist>

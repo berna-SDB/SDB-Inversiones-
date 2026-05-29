@@ -1,0 +1,6 @@
+<centerlink scriptid="custlink_sdb_inv_new_fci">
+  <center>ACCOUNTCENTER</center>
+  <centercategory>[scriptid=custcentercategory_sdb_inv_nuevas]</centercategory>
+  <label>Nueva Inv. FCI / Títulos</label>
+  <url>/app/common/custom/custrecordentry.nl?rectype=1727&amp;cf=568</url>
+</centerlink>

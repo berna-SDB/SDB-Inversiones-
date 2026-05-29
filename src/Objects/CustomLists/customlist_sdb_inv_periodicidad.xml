@@ -1,0 +1,34 @@
+<customlist scriptid="customlist_sdb_inv_periodicidad">
+  <description>Periodicidad de pago de la inversión</description>
+  <isinactive>F</isinactive>
+  <ismatrixoption>F</ismatrixoption>
+  <isordered>T</isordered>
+  <name>SDB | Periodicidad de Pago</name>
+  <customvalues>
+    <customvalue scriptid="val_mensual">
+      <abbreviation>M</abbreviation>
+      <isinactive>F</isinactive>
+      <value>Mensual</value>
+    </customvalue>
+    <customvalue scriptid="val_bimensual">
+      <abbreviation>B</abbreviation>
+      <isinactive>F</isinactive>
+      <value>Bimensual</value>
+    </customvalue>
+    <customvalue scriptid="val_trimestral">
+      <abbreviation>T</abbreviation>
+      <isinactive>F</isinactive>
+      <value>Trimestral</value>
+    </customvalue>
+    <customvalue scriptid="val_semestral">
+      <abbreviation>S</abbreviation>
+      <isinactive>F</isinactive>
+      <value>Semestral</value>
+    </customvalue>
+    <customvalue scriptid="val_anual">
+      <abbreviation>A</abbreviation>
+      <isinactive>F</isinactive>
+      <value>Anual</value>
+    </customvalue>
+  </customvalues>
+</customlist>

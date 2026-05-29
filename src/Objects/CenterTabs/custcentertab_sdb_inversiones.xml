@@ -1,0 +1,10 @@
+<centertab scriptid="custcentertab_sdb_inversiones">
+  <allcustomers>F</allcustomers>
+  <allemployees>F</allemployees>
+  <allpartners>F</allpartners>
+  <allroles>T</allroles>
+  <allvendors>F</allvendors>
+  <audslctrole></audslctrole>
+  <center>BASIC</center>
+  <label>Inversiones</label>
+</centertab>

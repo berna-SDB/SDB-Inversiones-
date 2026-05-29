@@ -1,0 +1,304 @@
+<customrecordtype scriptid="customrecord_sdb_inv_ext_instrumento">
+  <accesstype>CUSTRECORDENTRYPERM</accesstype>
+  <allowattachments>F</allowattachments>
+  <allowinlinedeleting>F</allowinlinedeleting>
+  <allowinlinedetaching>F</allowinlinedetaching>
+  <allowinlineediting>T</allowinlineediting>
+  <allowmobileaccess>F</allowmobileaccess>
+  <allownumberingoverride>F</allownumberingoverride>
+  <allowquickadd>T</allowquickadd>
+  <allowquicksearch>T</allowquicksearch>
+  <allowuiaccess>T</allowuiaccess>
+  <description>Instrumento del exterior. Mantiene el valor actual; la historia queda en los Journal Entries.</description>
+  <enabledle>T</enabledle>
+  <enablekeywords>T</enablekeywords>
+  <enablenametranslation>F</enablenametranslation>
+  <enablenumbering>F</enablenumbering>
+  <enableoptimisticlocking>T</enableoptimisticlocking>
+  <enablesystemnotes>T</enablesystemnotes>
+  <hierarchical>F</hierarchical>
+  <iconbuiltin>T</iconbuiltin>
+  <includeinsearchmenu>T</includeinsearchmenu>
+  <includename>T</includename>
+  <isinactive>F</isinactive>
+  <isordered>F</isordered>
+  <recordname>SDB | Instrumento Exterior</recordname>
+  <showcreationdate>F</showcreationdate>
+  <showcreationdateonlist>F</showcreationdateonlist>
+  <showid>F</showid>
+  <showlastmodified>F</showlastmodified>
+  <showlastmodifiedonlist>F</showlastmodifiedonlist>
+  <shownotes>T</shownotes>
+  <showowner>F</showowner>
+  <showownerallowchange>F</showownerallowchange>
+  <showowneronlist>F</showowneronlist>
+  <customrecordcustomfields>
+    <customrecordcustomfield scriptid="custrecord_sdb_extinst_comitente">
+      <accesslevel>2</accesslevel>
+      <allowquickadd>F</allowquickadd>
+      <applyformatting>F</applyformatting>
+      <checkspelling>F</checkspelling>
+      <defaultchecked>F</defaultchecked>
+      <description>Cuenta del comitente donde reside el instrumento</description>
+      <displaytype>NORMAL</displaytype>
+      <enabletextenhance>F</enabletextenhance>
+      <encryptatrest>F</encryptatrest>
+      <fieldtype>SELECT</fieldtype>
+      <globalsearch>F</globalsearch>
+      <isformula>F</isformula>
+      <ismandatory>T</ismandatory>
+      <isparent>F</isparent>
+      <label>Cuenta Comitente</label>
+      <onparentdelete>NO_ACTION</onparentdelete>
+      <rolerestrict>F</rolerestrict>
+      <searchlevel>2</searchlevel>
+      <selectrecordtype>[scriptid=customrecord_sdb_inv_ext_comitente]</selectrecordtype>
+      <showinlist>T</showinlist>
+      <storevalue>T</storevalue>
+    </customrecordcustomfield>
+    <customrecordcustomfield scriptid="custrecord_sdb_extinst_isin">
+      <accesslevel>2</accesslevel>
+      <allowquickadd>F</allowquickadd>
+      <applyformatting>F</applyformatting>
+      <checkspelling>F</checkspelling>
+      <defaultchecked>F</defaultchecked>
+      <description>ISIN, ticker o c&#243;digo interno del broker</description>
+      <displaytype>NORMAL</displaytype>
+      <enabletextenhance>F</enabletextenhance>
+      <encryptatrest>F</encryptatrest>
+      <fieldtype>TEXT</fieldtype>
+      <globalsearch>F</globalsearch>
+      <isformula>F</isformula>
+      <ismandatory>F</ismandatory>
+      <isparent>F</isparent>
+      <label>ISIN / C&#243;digo</label>
+      <maxlength>50</maxlength>
+      <onparentdelete>NO_ACTION</onparentdelete>
+      <rolerestrict>F</rolerestrict>
+      <searchlevel>2</searchlevel>
+      <showinlist>T</showinlist>
+      <storevalue>T</storevalue>
+    </customrecordcustomfield>
+    <customrecordcustomfield scriptid="custrecord_sdb_extinst_tipo">
+      <accesslevel>2</accesslevel>
+      <allowquickadd>F</allowquickadd>
+      <applyformatting>F</applyformatting>
+      <checkspelling>F</checkspelling>
+      <defaultchecked>F</defaultchecked>
+      <description>Tipo de instrumento (define la cuenta de resultado por tenencia)</description>
+      <displaytype>NORMAL</displaytype>
+      <enabletextenhance>F</enabletextenhance>
+      <encryptatrest>F</encryptatrest>
+      <fieldtype>SELECT</fieldtype>
+      <globalsearch>F</globalsearch>
+      <isformula>F</isformula>
+      <ismandatory>T</ismandatory>
+      <isparent>F</isparent>
+      <label>Tipo</label>
+      <onparentdelete>NO_ACTION</onparentdelete>
+      <rolerestrict>F</rolerestrict>
+      <searchlevel>2</searchlevel>
+      <selectrecordtype>[scriptid=customrecord_sdb_inv_ext_tipo]</selectrecordtype>
+      <showinlist>T</showinlist>
+      <storevalue>T</storevalue>
+    </customrecordcustomfield>
+    <customrecordcustomfield scriptid="custrecord_sdb_extinst_subtipo">
+      <accesslevel>2</accesslevel>
+      <allowquickadd>F</allowquickadd>
+      <applyformatting>F</applyformatting>
+      <checkspelling>F</checkspelling>
+      <defaultchecked>F</defaultchecked>
+      <displaytype>NORMAL</displaytype>
+      <enabletextenhance>F</enabletextenhance>
+      <encryptatrest>F</encryptatrest>
+      <fieldtype>SELECT</fieldtype>
+      <globalsearch>F</globalsearch>
+      <isformula>F</isformula>
+      <ismandatory>F</ismandatory>
+      <isparent>F</isparent>
+      <label>Subtipo</label>
+      <onparentdelete>NO_ACTION</onparentdelete>
+      <rolerestrict>F</rolerestrict>
+      <searchlevel>2</searchlevel>
+      <selectrecordtype>[scriptid=customlist_sdb_inv_ext_subtipo]</selectrecordtype>
+      <showinlist>T</showinlist>
+      <storevalue>T</storevalue>
+    </customrecordcustomfield>
+    <customrecordcustomfield scriptid="custrecord_sdb_extinst_moneda">
+      <accesslevel>2</accesslevel>
+      <allowquickadd>F</allowquickadd>
+      <applyformatting>F</applyformatting>
+      <checkspelling>F</checkspelling>
+      <defaultchecked>F</defaultchecked>
+      <displaytype>NORMAL</displaytype>
+      <enabletextenhance>F</enabletextenhance>
+      <encryptatrest>F</encryptatrest>
+      <fieldtype>SELECT</fieldtype>
+      <globalsearch>F</globalsearch>
+      <isformula>F</isformula>
+      <ismandatory>T</ismandatory>
+      <isparent>F</isparent>
+      <label>Moneda</label>
+      <onparentdelete>NO_ACTION</onparentdelete>
+      <rolerestrict>F</rolerestrict>
+      <searchlevel>2</searchlevel>
+      <selectrecordtype>-122</selectrecordtype>
+      <showinlist>T</showinlist>
+      <storevalue>T</storevalue>
+    </customrecordcustomfield>
+    <customrecordcustomfield scriptid="custrecord_sdb_extinst_cta_contable">
+      <accesslevel>2</accesslevel>
+      <allowquickadd>F</allowquickadd>
+      <applyformatting>F</applyformatting>
+      <checkspelling>F</checkspelling>
+      <defaultchecked>F</defaultchecked>
+      <description>Cuenta contable donde vive el activo (Inversiones no corrientes / Fundraising / etc.)</description>
+      <displaytype>NORMAL</displaytype>
+      <enabletextenhance>F</enabletextenhance>
+      <encryptatrest>F</encryptatrest>
+      <fieldtype>SELECT</fieldtype>
+      <globalsearch>F</globalsearch>
+      <isformula>F</isformula>
+      <ismandatory>T</ismandatory>
+      <isparent>F</isparent>
+      <label>Cuenta Contable</label>
+      <onparentdelete>NO_ACTION</onparentdelete>
+      <rolerestrict>F</rolerestrict>
+      <searchlevel>2</searchlevel>
+      <selectrecordtype>-112</selectrecordtype>
+      <showinlist>F</showinlist>
+      <storevalue>T</storevalue>
+    </customrecordcustomfield>
+    <customrecordcustomfield scriptid="custrecord_sdb_extinst_cantidad">
+      <accesslevel>2</accesslevel>
+      <allowquickadd>F</allowquickadd>
+      <applyformatting>F</applyformatting>
+      <checkspelling>F</checkspelling>
+      <defaultchecked>F</defaultchecked>
+      <description>Cantidad actual (nominales / acciones / cuotapartes)</description>
+      <displaytype>NORMAL</displaytype>
+      <enabletextenhance>F</enabletextenhance>
+      <encryptatrest>F</encryptatrest>
+      <fieldtype>FLOAT</fieldtype>
+      <globalsearch>F</globalsearch>
+      <isformula>F</isformula>
+      <ismandatory>F</ismandatory>
+      <isparent>F</isparent>
+      <label>Cantidad</label>
+      <onparentdelete>NO_ACTION</onparentdelete>
+      <rolerestrict>F</rolerestrict>
+      <searchlevel>2</searchlevel>
+      <showinlist>T</showinlist>
+      <storevalue>T</storevalue>
+    </customrecordcustomfield>
+    <customrecordcustomfield scriptid="custrecord_sdb_extinst_valor_actual">
+      <accesslevel>2</accesslevel>
+      <allowquickadd>F</allowquickadd>
+      <applyformatting>F</applyformatting>
+      <checkspelling>F</checkspelling>
+      <defaultchecked>F</defaultchecked>
+      <description>Valor de cierre actualizado en cada carga (en moneda original)</description>
+      <displaytype>NORMAL</displaytype>
+      <enabletextenhance>F</enabletextenhance>
+      <encryptatrest>F</encryptatrest>
+      <fieldtype>CURRENCY</fieldtype>
+      <globalsearch>F</globalsearch>
+      <isformula>F</isformula>
+      <ismandatory>F</ismandatory>
+      <isparent>F</isparent>
+      <label>Valor Actual</label>
+      <onparentdelete>NO_ACTION</onparentdelete>
+      <rolerestrict>F</rolerestrict>
+      <searchlevel>2</searchlevel>
+      <showinlist>T</showinlist>
+      <storevalue>T</storevalue>
+    </customrecordcustomfield>
+    <customrecordcustomfield scriptid="custrecord_sdb_extinst_fecha_actual">
+      <accesslevel>2</accesslevel>
+      <allowquickadd>F</allowquickadd>
+      <applyformatting>F</applyformatting>
+      <checkspelling>F</checkspelling>
+      <defaultchecked>F</defaultchecked>
+      <description>Fecha del &#250;ltimo valor</description>
+      <displaytype>NORMAL</displaytype>
+      <enabletextenhance>F</enabletextenhance>
+      <encryptatrest>F</encryptatrest>
+      <fieldtype>DATE</fieldtype>
+      <globalsearch>F</globalsearch>
+      <isformula>F</isformula>
+      <ismandatory>F</ismandatory>
+      <isparent>F</isparent>
+      <label>Fecha &#218;ltimo Valor</label>
+      <onparentdelete>NO_ACTION</onparentdelete>
+      <rolerestrict>F</rolerestrict>
+      <searchlevel>2</searchlevel>
+      <showinlist>T</showinlist>
+      <storevalue>T</storevalue>
+    </customrecordcustomfield>
+    <customrecordcustomfield scriptid="custrecord_sdb_extinst_tc">
+      <accesslevel>2</accesslevel>
+      <allowquickadd>F</allowquickadd>
+      <applyformatting>F</applyformatting>
+      <checkspelling>F</checkspelling>
+      <defaultchecked>F</defaultchecked>
+      <description>Tipo de cambio aplicado al valor actual</description>
+      <displaytype>NORMAL</displaytype>
+      <enabletextenhance>F</enabletextenhance>
+      <encryptatrest>F</encryptatrest>
+      <fieldtype>FLOAT</fieldtype>
+      <globalsearch>F</globalsearch>
+      <isformula>F</isformula>
+      <ismandatory>F</ismandatory>
+      <isparent>F</isparent>
+      <label>Tipo de Cambio</label>
+      <onparentdelete>NO_ACTION</onparentdelete>
+      <rolerestrict>F</rolerestrict>
+      <searchlevel>2</searchlevel>
+      <showinlist>F</showinlist>
+      <storevalue>T</storevalue>
+    </customrecordcustomfield>
+    <customrecordcustomfield scriptid="custrecord_sdb_extinst_valor_func">
+      <accesslevel>2</accesslevel>
+      <allowquickadd>F</allowquickadd>
+      <applyformatting>F</applyformatting>
+      <checkspelling>F</checkspelling>
+      <defaultchecked>F</defaultchecked>
+      <description>Valor expresado en moneda funcional (= valor_actual &#215; tipo_cambio)</description>
+      <displaytype>NORMAL</displaytype>
+      <enabletextenhance>F</enabletextenhance>
+      <encryptatrest>F</encryptatrest>
+      <fieldtype>CURRENCY</fieldtype>
+      <globalsearch>F</globalsearch>
+      <isformula>F</isformula>
+      <ismandatory>F</ismandatory>
+      <isparent>F</isparent>
+      <label>Valor Funcional</label>
+      <onparentdelete>NO_ACTION</onparentdelete>
+      <rolerestrict>F</rolerestrict>
+      <searchlevel>2</searchlevel>
+      <showinlist>T</showinlist>
+      <storevalue>T</storevalue>
+    </customrecordcustomfield>
+    <customrecordcustomfield scriptid="custrecord_sdb_extinst_descripcion">
+      <accesslevel>2</accesslevel>
+      <allowquickadd>F</allowquickadd>
+      <applyformatting>F</applyformatting>
+      <checkspelling>F</checkspelling>
+      <defaultchecked>F</defaultchecked>
+      <displaytype>NORMAL</displaytype>
+      <enabletextenhance>F</enabletextenhance>
+      <encryptatrest>F</encryptatrest>
+      <fieldtype>TEXTAREA</fieldtype>
+      <globalsearch>F</globalsearch>
+      <isformula>F</isformula>
+      <ismandatory>F</ismandatory>
+      <isparent>F</isparent>
+      <label>Descripci&#243;n</label>
+      <onparentdelete>NO_ACTION</onparentdelete>
+      <rolerestrict>F</rolerestrict>
+      <searchlevel>2</searchlevel>
+      <showinlist>F</showinlist>
+      <storevalue>T</storevalue>
+    </customrecordcustomfield>
+  </customrecordcustomfields>
+</customrecordtype>

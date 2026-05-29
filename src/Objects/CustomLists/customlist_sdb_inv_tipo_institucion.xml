@@ -1,0 +1,19 @@
+<customlist scriptid="customlist_sdb_inv_tipo_institucion">
+  <description>Tipo de institución financiera (Nacional / Exterior)</description>
+  <isinactive>F</isinactive>
+  <ismatrixoption>F</ismatrixoption>
+  <isordered>T</isordered>
+  <name>SDB | Tipo de Institución</name>
+  <customvalues>
+    <customvalue scriptid="val_nacional">
+      <abbreviation>N</abbreviation>
+      <isinactive>F</isinactive>
+      <value>Nacional</value>
+    </customvalue>
+    <customvalue scriptid="val_exterior">
+      <abbreviation>E</abbreviation>
+      <isinactive>F</isinactive>
+      <value>Exterior</value>
+    </customvalue>
+  </customvalues>
+</customlist>

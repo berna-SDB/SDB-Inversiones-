@@ -1,0 +1,60 @@
+<customrecordtype scriptid="customrecord_sdb_inv_ext_tipo">
+  <accesstype>CUSTRECORDENTRYPERM</accesstype>
+  <allowattachments>F</allowattachments>
+  <allowinlinedeleting>F</allowinlinedeleting>
+  <allowinlinedetaching>F</allowinlinedetaching>
+  <allowinlineediting>T</allowinlineediting>
+  <allowmobileaccess>F</allowmobileaccess>
+  <allownumberingoverride>F</allownumberingoverride>
+  <allowquickadd>T</allowquickadd>
+  <allowquicksearch>T</allowquicksearch>
+  <allowuiaccess>T</allowuiaccess>
+  <description>Tipo de instrumento del exterior. Define la cuenta de resultado por tenencia.</description>
+  <enabledle>T</enabledle>
+  <enablekeywords>T</enablekeywords>
+  <enablenametranslation>F</enablenametranslation>
+  <enablenumbering>F</enablenumbering>
+  <enableoptimisticlocking>T</enableoptimisticlocking>
+  <enablesystemnotes>T</enablesystemnotes>
+  <hierarchical>F</hierarchical>
+  <iconbuiltin>T</iconbuiltin>
+  <includeinsearchmenu>T</includeinsearchmenu>
+  <includename>T</includename>
+  <isinactive>F</isinactive>
+  <isordered>F</isordered>
+  <recordname>SDB | Tipo Inversi&#243;n Exterior</recordname>
+  <showcreationdate>F</showcreationdate>
+  <showcreationdateonlist>F</showcreationdateonlist>
+  <showid>F</showid>
+  <showlastmodified>F</showlastmodified>
+  <showlastmodifiedonlist>F</showlastmodifiedonlist>
+  <shownotes>F</shownotes>
+  <showowner>F</showowner>
+  <showownerallowchange>F</showownerallowchange>
+  <showowneronlist>F</showowneronlist>
+  <customrecordcustomfields>
+    <customrecordcustomfield scriptid="custrecord_sdb_exttipo_cta_resultado">
+      <accesslevel>2</accesslevel>
+      <allowquickadd>F</allowquickadd>
+      <applyformatting>F</applyformatting>
+      <checkspelling>F</checkspelling>
+      <defaultchecked>F</defaultchecked>
+      <description>Cuenta contable de resultado por tenencia para este tipo de instrumento</description>
+      <displaytype>NORMAL</displaytype>
+      <enabletextenhance>F</enabletextenhance>
+      <encryptatrest>F</encryptatrest>
+      <fieldtype>SELECT</fieldtype>
+      <globalsearch>F</globalsearch>
+      <isformula>F</isformula>
+      <ismandatory>T</ismandatory>
+      <isparent>F</isparent>
+      <label>Cuenta Resultado por Tenencia</label>
+      <onparentdelete>NO_ACTION</onparentdelete>
+      <rolerestrict>F</rolerestrict>
+      <searchlevel>2</searchlevel>
+      <selectrecordtype>-112</selectrecordtype>
+      <showinlist>T</showinlist>
+      <storevalue>T</storevalue>
+    </customrecordcustomfield>
+  </customrecordcustomfields>
+</customrecordtype>

@@ -1,0 +1,16 @@
+<manifest projecttype="ACCOUNTCUSTOMIZATION">
+  <projectname>UCA-Inversiones</projectname>
+  <frameworkversion>1.0</frameworkversion>
+  <dependencies>
+    <features>
+      <feature required="true">SERVERSIDESCRIPTING</feature>
+      <feature required="true">CUSTOMRECORDS</feature>
+      <feature required="true">ACCOUNTING</feature>
+    </features>
+    <objects>
+      <object>customrecord_sdb_inv_ext_comitente</object>
+      <object>customrecord_sdb_inv_ext_instrumento</object>
+      <object>customrecord_sdb_inv_ext_cash</object>
+    </objects>
+  </dependencies>
+</manifest>

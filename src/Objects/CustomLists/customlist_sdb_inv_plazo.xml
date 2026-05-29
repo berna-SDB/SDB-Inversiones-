@@ -1,0 +1,19 @@
+<customlist scriptid="customlist_sdb_inv_plazo">
+  <description>Plazo de la inversión</description>
+  <isinactive>F</isinactive>
+  <ismatrixoption>F</ismatrixoption>
+  <isordered>T</isordered>
+  <name>SDB | Plazo de Inversión</name>
+  <customvalues>
+    <customvalue scriptid="val_corto">
+      <abbreviation>C</abbreviation>
+      <isinactive>F</isinactive>
+      <value>Corto plazo</value>
+    </customvalue>
+    <customvalue scriptid="val_largo">
+      <abbreviation>L</abbreviation>
+      <isinactive>F</isinactive>
+      <value>Largo plazo</value>
+    </customvalue>
+  </customvalues>
+</customlist>

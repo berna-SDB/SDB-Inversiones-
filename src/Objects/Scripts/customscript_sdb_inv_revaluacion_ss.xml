@@ -1,0 +1,54 @@
+<scheduledscript scriptid="customscript_sdb_inv_revaluacion_ss">
+  <description>Scheduled Script de revaluación mensual para inversiones en moneda extranjera.</description>
+  <isinactive>F</isinactive>
+  <name>SDB | Inversión - Revaluación Mensual</name>
+  <notifyadmins>T</notifyadmins>
+  <notifyemails></notifyemails>
+  <notifyowner>T</notifyowner>
+  <scriptfile>[/SuiteScripts/sdb_inv_revaluacion_ss.js]</scriptfile>
+  <scriptcustomfields>
+    <scriptcustomfield scriptid="custscript_sdb_rev_cta_dif_cambio">
+      <accesslevel>2</accesslevel>
+      <aidescription></aidescription>
+      <applyformatting>F</applyformatting>
+      <checkspelling>F</checkspelling>
+      <defaultchecked>F</defaultchecked>
+      <defaultselection></defaultselection>
+      <defaultvalue></defaultvalue>
+      <description></description>
+      <displayheight></displayheight>
+      <displaytype>NORMAL</displaytype>
+      <displaywidth></displaywidth>
+      <dynamicdefault></dynamicdefault>
+      <fieldtype>SELECT</fieldtype>
+      <help></help>
+      <isformula>F</isformula>
+      <ismandatory>F</ismandatory>
+      <label>Cuenta Diferencia de Cambio (JE)</label>
+      <linktext></linktext>
+      <maxlength></maxlength>
+      <maxvalue></maxvalue>
+      <minvalue></minvalue>
+      <onparentdelete>NO_ACTION</onparentdelete>
+      <searchlevel>2</searchlevel>
+      <selectrecordtype>-112</selectrecordtype>
+      <setting></setting>
+      <storevalue>T</storevalue>
+    </scriptcustomfield>
+  </scriptcustomfields>
+  <scriptdeployments>
+    <scriptdeployment scriptid="customdeploy_sdb_inv_revaluacion_ss">
+      <isdeployed>T</isdeployed>
+      <loglevel>DEBUG</loglevel>
+      <status>NOTSCHEDULED</status>
+      <title>SDB | Inversión - Revaluación Mensual</title>
+      <recurrence>
+        <single>
+          <repeat></repeat>
+          <startdate>2026-03-30</startdate>
+          <starttime>17:00:00Z</starttime>
+        </single>
+      </recurrence>
+    </scriptdeployment>
+  </scriptdeployments>
+</scheduledscript>

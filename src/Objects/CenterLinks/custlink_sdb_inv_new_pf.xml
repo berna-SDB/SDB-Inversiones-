@@ -1,0 +1,6 @@
+<centerlink scriptid="custlink_sdb_inv_new_pf">
+  <center>ACCOUNTCENTER</center>
+  <centercategory>[scriptid=custcentercategory_sdb_inv_nuevas]</centercategory>
+  <label>Nueva Inv. Plazo Fijo</label>
+  <url>/app/common/custom/custrecordentry.nl?rectype=1727&amp;cf=567</url>
+</centerlink>

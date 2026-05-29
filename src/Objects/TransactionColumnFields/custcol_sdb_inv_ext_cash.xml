@@ -1,0 +1,13 @@
+<transactioncolumncustomfield scriptid="custcol_sdb_inv_ext_cash">
+  <accesslevel>2</accesslevel>
+  <applyformatting>F</applyformatting>
+  <coljournal>T</coljournal>
+  <description>Cash del exterior asociado a esta linea del asiento</description>
+  <displaytype>NORMAL</displaytype>
+  <fieldtype>SELECT</fieldtype>
+  <ismandatory>F</ismandatory>
+  <label>Cash Exterior</label>
+  <searchlevel>2</searchlevel>
+  <selectrecordtype>[scriptid=customrecord_sdb_inv_ext_cash]</selectrecordtype>
+  <storevalue>T</storevalue>
+</transactioncolumncustomfield>

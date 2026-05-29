@@ -1,0 +1,25 @@
+<suitelet scriptid="customscript_sdb_inv_carga_ctas_sl">
+  <description>Suitelet de carga masiva de Cuentas Contables (Chart of Accounts) desde el WIP UCA. Se ejecuta una vez para crear las cuentas en SB2.</description>
+  <isinactive>F</isinactive>
+  <name>SDB | Carga Cuentas Contables</name>
+  <notifyadmins>F</notifyadmins>
+  <notifyemails></notifyemails>
+  <notifyowner>T</notifyowner>
+  <notifyuser>F</notifyuser>
+  <scriptfile>[/SuiteScripts/sdb_inv_carga_cuentas_sl.js]</scriptfile>
+  <scriptdeployments>
+    <scriptdeployment scriptid="customdeploy_sdb_inv_carga_ctas_sl">
+      <allemployees>F</allemployees>
+      <allpartners>F</allpartners>
+      <allroles>F</allroles>
+      <audslctrole>ADMINISTRATOR</audslctrole>
+      <eventtype></eventtype>
+      <isdeployed>T</isdeployed>
+      <isonline>F</isonline>
+      <loglevel>DEBUG</loglevel>
+      <runasrole>ADMINISTRATOR</runasrole>
+      <status>RELEASED</status>
+      <title>SDB | Carga Cuentas Contables</title>
+    </scriptdeployment>
+  </scriptdeployments>
+</suitelet>

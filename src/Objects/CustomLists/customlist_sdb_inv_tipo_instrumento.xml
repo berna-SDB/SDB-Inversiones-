@@ -1,0 +1,39 @@
+<customlist scriptid="customlist_sdb_inv_tipo_instrumento">
+  <description>Tipos de instrumento de inversión</description>
+  <isinactive>F</isinactive>
+  <ismatrixoption>F</ismatrixoption>
+  <isordered>T</isordered>
+  <name>SDB | Tipo de Instrumento</name>
+  <customvalues>
+    <customvalue scriptid="val_pf">
+      <abbreviation>P</abbreviation>
+      <isinactive>F</isinactive>
+      <value>Plazo Fijo</value>
+    </customvalue>
+    <customvalue scriptid="val_fci">
+      <abbreviation>F</abbreviation>
+      <isinactive>F</isinactive>
+      <value>Fondo de Inversión</value>
+    </customvalue>
+    <customvalue scriptid="val_bono">
+      <abbreviation>B</abbreviation>
+      <isinactive>F</isinactive>
+      <value>Bono</value>
+    </customvalue>
+    <customvalue scriptid="val_acc">
+      <abbreviation>A</abbreviation>
+      <isinactive>F</isinactive>
+      <value>Acciones</value>
+    </customvalue>
+    <customvalue scriptid="val_rv">
+      <abbreviation>R</abbreviation>
+      <isinactive>F</isinactive>
+      <value>Renta Variable</value>
+    </customvalue>
+    <customvalue scriptid="val_1051355_6476537_sb1_845">
+      <abbreviation></abbreviation>
+      <isinactive>F</isinactive>
+      <value>Exterior</value>
+    </customvalue>
+  </customvalues>
+</customlist>

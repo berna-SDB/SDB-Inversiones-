@@ -1,0 +1,156 @@
+<customrecordtype scriptid="customrecord_sdb_inv_ext_comitente">
+  <accesstype>CUSTRECORDENTRYPERM</accesstype>
+  <allowattachments>F</allowattachments>
+  <allowinlinedeleting>F</allowinlinedeleting>
+  <allowinlinedetaching>F</allowinlinedetaching>
+  <allowinlineediting>T</allowinlineediting>
+  <allowmobileaccess>F</allowmobileaccess>
+  <allownumberingoverride>F</allownumberingoverride>
+  <allowquickadd>T</allowquickadd>
+  <allowquicksearch>T</allowquicksearch>
+  <allowuiaccess>T</allowuiaccess>
+  <description>Cuenta del comitente abierta en una instituci&#243;n financiera del exterior</description>
+  <enabledle>T</enabledle>
+  <enablekeywords>T</enablekeywords>
+  <enablenametranslation>F</enablenametranslation>
+  <enablenumbering>F</enablenumbering>
+  <enableoptimisticlocking>T</enableoptimisticlocking>
+  <enablesystemnotes>T</enablesystemnotes>
+  <hierarchical>F</hierarchical>
+  <iconbuiltin>T</iconbuiltin>
+  <includeinsearchmenu>T</includeinsearchmenu>
+  <includename>T</includename>
+  <isinactive>F</isinactive>
+  <isordered>F</isordered>
+  <recordname>SDB | Cuenta Comitente Exterior</recordname>
+  <showcreationdate>F</showcreationdate>
+  <showcreationdateonlist>F</showcreationdateonlist>
+  <showid>F</showid>
+  <showlastmodified>F</showlastmodified>
+  <showlastmodifiedonlist>F</showlastmodifiedonlist>
+  <shownotes>T</shownotes>
+  <showowner>F</showowner>
+  <showownerallowchange>F</showownerallowchange>
+  <showowneronlist>F</showowneronlist>
+  <customrecordcustomfields>
+    <customrecordcustomfield scriptid="custrecord_sdb_extcc_inst_financiera">
+      <accesslevel>2</accesslevel>
+      <allowquickadd>F</allowquickadd>
+      <applyformatting>F</applyformatting>
+      <checkspelling>F</checkspelling>
+      <defaultchecked>F</defaultchecked>
+      <description>Instituci&#243;n financiera del exterior (Pictet, JP Morgan, etc.)</description>
+      <displaytype>NORMAL</displaytype>
+      <enabletextenhance>F</enabletextenhance>
+      <encryptatrest>F</encryptatrest>
+      <fieldtype>SELECT</fieldtype>
+      <globalsearch>F</globalsearch>
+      <isformula>F</isformula>
+      <ismandatory>T</ismandatory>
+      <isparent>F</isparent>
+      <label>Instituci&#243;n Financiera</label>
+      <onparentdelete>NO_ACTION</onparentdelete>
+      <rolerestrict>F</rolerestrict>
+      <searchlevel>2</searchlevel>
+      <selectrecordtype>[scriptid=customrecord_sdb_inv_inst_financiera]</selectrecordtype>
+      <showinlist>T</showinlist>
+      <storevalue>T</storevalue>
+    </customrecordcustomfield>
+    <customrecordcustomfield scriptid="custrecord_sdb_extcc_numero">
+      <accesslevel>2</accesslevel>
+      <allowquickadd>F</allowquickadd>
+      <applyformatting>F</applyformatting>
+      <checkspelling>F</checkspelling>
+      <defaultchecked>F</defaultchecked>
+      <description>N&#250;mero / identificador de la cuenta en el broker</description>
+      <displaytype>NORMAL</displaytype>
+      <enabletextenhance>F</enabletextenhance>
+      <encryptatrest>F</encryptatrest>
+      <fieldtype>TEXT</fieldtype>
+      <globalsearch>F</globalsearch>
+      <isformula>F</isformula>
+      <ismandatory>T</ismandatory>
+      <isparent>F</isparent>
+      <label>N&#250;mero de Cuenta</label>
+      <maxlength>50</maxlength>
+      <onparentdelete>NO_ACTION</onparentdelete>
+      <rolerestrict>F</rolerestrict>
+      <searchlevel>2</searchlevel>
+      <showinlist>T</showinlist>
+      <storevalue>T</storevalue>
+    </customrecordcustomfield>
+    <customrecordcustomfield scriptid="custrecord_sdb_extcc_moneda">
+      <accesslevel>2</accesslevel>
+      <allowquickadd>F</allowquickadd>
+      <applyformatting>F</applyformatting>
+      <checkspelling>F</checkspelling>
+      <defaultchecked>F</defaultchecked>
+      <description>Moneda principal de la cuenta</description>
+      <displaytype>NORMAL</displaytype>
+      <enabletextenhance>F</enabletextenhance>
+      <encryptatrest>F</encryptatrest>
+      <fieldtype>SELECT</fieldtype>
+      <globalsearch>F</globalsearch>
+      <isformula>F</isformula>
+      <ismandatory>T</ismandatory>
+      <isparent>F</isparent>
+      <label>Moneda Principal</label>
+      <onparentdelete>NO_ACTION</onparentdelete>
+      <rolerestrict>F</rolerestrict>
+      <searchlevel>2</searchlevel>
+      <selectrecordtype>-122</selectrecordtype>
+      <showinlist>T</showinlist>
+      <storevalue>T</storevalue>
+    </customrecordcustomfield>
+    <customrecordcustomfield scriptid="custrecord_sdb_extcc_cta_origen">
+      <accesslevel>2</accesslevel>
+      <allowquickadd>F</allowquickadd>
+      <applyformatting>F</applyformatting>
+      <checkspelling>F</checkspelling>
+      <defaultchecked>F</defaultchecked>
+      <description>Cuenta contable por defecto usada como contrapartida en altas/bajas de cash e instrumentos. Se puede pisar fila por fila desde el Suitelet.</description>
+      <displaytype>NORMAL</displaytype>
+      <enabletextenhance>F</enabletextenhance>
+      <encryptatrest>F</encryptatrest>
+      <fieldtype>SELECT</fieldtype>
+      <globalsearch>F</globalsearch>
+      <isformula>F</isformula>
+      <ismandatory>F</ismandatory>
+      <isparent>F</isparent>
+      <label>Cuenta Origen (default contrapartida)</label>
+      <onparentdelete>NO_ACTION</onparentdelete>
+      <rolerestrict>F</rolerestrict>
+      <searchlevel>2</searchlevel>
+      <selectrecordtype>-112</selectrecordtype>
+      <showinlist>F</showinlist>
+      <storevalue>T</storevalue>
+    </customrecordcustomfield>
+    <customrecordcustomfield scriptid="custrecord_sdb_extcc_descripcion">
+      <accesslevel>2</accesslevel>
+      <allowquickadd>F</allowquickadd>
+      <applyformatting>F</applyformatting>
+      <checkspelling>F</checkspelling>
+      <defaultchecked>F</defaultchecked>
+      <displaytype>NORMAL</displaytype>
+      <enabletextenhance>F</enabletextenhance>
+      <encryptatrest>F</encryptatrest>
+      <fieldtype>TEXTAREA</fieldtype>
+      <globalsearch>F</globalsearch>
+      <isformula>F</isformula>
+      <ismandatory>F</ismandatory>
+      <isparent>F</isparent>
+      <label>Descripci&#243;n</label>
+      <onparentdelete>NO_ACTION</onparentdelete>
+      <rolerestrict>F</rolerestrict>
+      <searchlevel>2</searchlevel>
+      <showinlist>F</showinlist>
+      <storevalue>T</storevalue>
+    </customrecordcustomfield>
+  </customrecordcustomfields>
+  <subtabs>
+    <subtab scriptid="custrecord_sdb_extcc_sub_journals">
+      <tabparent></tabparent>
+      <tabtitle>Asientos</tabtitle>
+    </subtab>
+  </subtabs>
+</customrecordtype>

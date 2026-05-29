@@ -1,0 +1,17 @@
+<transactionbodycustomfield scriptid="custbody_sdb_inv_ext_comitente">
+  <accesslevel>2</accesslevel>
+  <applyformatting>F</applyformatting>
+  <bodyjournal>T</bodyjournal>
+  <description>Cuenta comitente del exterior asociada a este asiento de cierre</description>
+  <displaytype>NORMAL</displaytype>
+  <fieldtype>SELECT</fieldtype>
+  <ismandatory>F</ismandatory>
+  <isparent>T</isparent>
+  <label>Cta. Comitente Exterior</label>
+  <onparentdelete>SET_NULL</onparentdelete>
+  <parentsubtab>[scriptid=customrecord_sdb_inv_ext_comitente.custrecord_sdb_extcc_sub_journals]</parentsubtab>
+  <searchlevel>2</searchlevel>
+  <selectrecordtype>[scriptid=customrecord_sdb_inv_ext_comitente]</selectrecordtype>
+  <storevalue>T</storevalue>
+  <subtab>TRANSACTIONMAIN</subtab>
+</transactionbodycustomfield>

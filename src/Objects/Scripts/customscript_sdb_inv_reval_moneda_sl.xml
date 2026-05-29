@@ -1,0 +1,25 @@
+<suitelet scriptid="customscript_sdb_inv_reval_moneda_sl">
+  <description>Suitelet para revaluar la moneda (diferencia de cambio) de inversiones en moneda foreign. Asienta contra cta_dif_cambio del maestro.</description>
+  <isinactive>F</isinactive>
+  <name>SDB | Revaluación de Moneda</name>
+  <notifyadmins>F</notifyadmins>
+  <notifyemails></notifyemails>
+  <notifyowner>T</notifyowner>
+  <notifyuser>F</notifyuser>
+  <scriptfile>[/SuiteScripts/sdb_inv_revaluacion_moneda_sl.js]</scriptfile>
+  <scriptdeployments>
+    <scriptdeployment scriptid="customdeploy_sdb_inv_reval_moneda_sl">
+      <allemployees>T</allemployees>
+      <allpartners>T</allpartners>
+      <allroles>T</allroles>
+      <audslctrole></audslctrole>
+      <eventtype></eventtype>
+      <isdeployed>T</isdeployed>
+      <isonline>F</isonline>
+      <loglevel>DEBUG</loglevel>
+      <runasrole>ADMINISTRATOR</runasrole>
+      <status>RELEASED</status>
+      <title>SDB | Revaluación de Moneda</title>
+    </scriptdeployment>
+  </scriptdeployments>
+</suitelet>

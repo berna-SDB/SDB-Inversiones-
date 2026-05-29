@@ -1,0 +1,13 @@
+# Claude Code — configuración local/personal
+.claude/
+
+# Temp / scratch
+tmp_check/
+
+# Backups de SDF (deploy.xml.bak, etc.)
+*.bak
+
+# OS
+Thumbs.db
+.DS_Store
+desktop.ini

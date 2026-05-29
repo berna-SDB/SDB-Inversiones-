@@ -1,0 +1,25 @@
+<suitelet scriptid="customscript_sdb_inv_ext_carga_sl">
+  <description>Suitelet de carga de cierre de inversiones del exterior. Upsert + JE consolidado por cuenta comitente.</description>
+  <isinactive>F</isinactive>
+  <name>SDB | Cierre Exterior</name>
+  <notifyadmins>F</notifyadmins>
+  <notifyemails></notifyemails>
+  <notifyowner>T</notifyowner>
+  <notifyuser>F</notifyuser>
+  <scriptfile>[/SuiteScripts/sdb_inv_ext_carga_sl.js]</scriptfile>
+  <scriptdeployments>
+    <scriptdeployment scriptid="customdeploy_sdb_inv_ext_carga_sl">
+      <allemployees>F</allemployees>
+      <allpartners>F</allpartners>
+      <allroles>F</allroles>
+      <audslctrole>ADMINISTRATOR</audslctrole>
+      <eventtype></eventtype>
+      <isdeployed>T</isdeployed>
+      <isonline>F</isonline>
+      <loglevel>DEBUG</loglevel>
+      <runasrole>ADMINISTRATOR</runasrole>
+      <status>RELEASED</status>
+      <title>SDB | Cierre Exterior</title>
+    </scriptdeployment>
+  </scriptdeployments>
+</suitelet>

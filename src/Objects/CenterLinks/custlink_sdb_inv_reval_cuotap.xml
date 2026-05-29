@@ -1,0 +1,6 @@
+<centerlink scriptid="custlink_sdb_inv_reval_cuotap">
+  <center>ACCOUNTCENTER</center>
+  <centercategory>[scriptid=custcentercategory_sdb_inv_operacio]</centercategory>
+  <label>Revaluación de Cuotaparte</label>
+  <url>/app/site/hosting/scriptlet.nl?script=customscript_sdb_inv_revaluacion_sl&amp;deploy=customdeploy_sdb_inv_revaluacion_sl</url>
+</centerlink>

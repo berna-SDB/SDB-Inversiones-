@@ -1,0 +1,6 @@
+<centerlink scriptid="custlink_sdb_inv_institucio">
+  <center>ACCOUNTCENTER</center>
+  <centercategory>[scriptid=custcentercategory_sdb_inv_listados]</centercategory>
+  <label>Instituciones Financieras</label>
+  <url>/app/common/custom/custrecordentrylist.nl?rectype=1940</url>
+</centerlink>

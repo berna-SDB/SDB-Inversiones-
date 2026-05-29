@@ -1,0 +1,25 @@
+<suitelet scriptid="customscript_sdb_dashboard_validacion_co">
+  <description>SL creado porque valentina guerra no queria entrar a los links que estan en las ordenes de compra</description>
+  <isinactive>F</isinactive>
+  <name>SDB | Dashboard validacion Contable</name>
+  <notifyadmins>F</notifyadmins>
+  <notifyemails></notifyemails>
+  <notifyowner>T</notifyowner>
+  <notifyuser>F</notifyuser>
+  <scriptfile>[/SuiteScripts/sdb_dashboard_contratos_sl.js]</scriptfile>
+  <scriptdeployments>
+    <scriptdeployment scriptid="customdeploy_sdb_dashboard_validacion_co">
+      <allemployees>T</allemployees>
+      <allpartners>T</allpartners>
+      <allroles>T</allroles>
+      <audslctrole></audslctrole>
+      <eventtype></eventtype>
+      <isdeployed>T</isdeployed>
+      <isonline>F</isonline>
+      <loglevel>DEBUG</loglevel>
+      <runasrole>ADMINISTRATOR</runasrole>
+      <status>RELEASED</status>
+      <title>SDB | Dashboard validacion Contable</title>
+    </scriptdeployment>
+  </scriptdeployments>
+</suitelet>

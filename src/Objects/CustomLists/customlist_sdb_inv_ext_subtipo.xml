@@ -1,0 +1,59 @@
+<customlist scriptid="customlist_sdb_inv_ext_subtipo">
+  <description>Subtipo de instrumento de inversi&#243;n del exterior</description>
+  <isinactive>F</isinactive>
+  <ismatrixoption>F</ismatrixoption>
+  <isordered>T</isordered>
+  <name>SDB | Subtipo Inv. Exterior</name>
+  <customvalues>
+    <customvalue scriptid="val_bono_sob">
+      <abbreviation></abbreviation>
+      <isinactive>F</isinactive>
+      <value>Bono soberano</value>
+    </customvalue>
+    <customvalue scriptid="val_bono_corp">
+      <abbreviation></abbreviation>
+      <isinactive>F</isinactive>
+      <value>Bono corporativo</value>
+    </customvalue>
+    <customvalue scriptid="val_accion">
+      <abbreviation></abbreviation>
+      <isinactive>F</isinactive>
+      <value>Acci&#243;n</value>
+    </customvalue>
+    <customvalue scriptid="val_etf">
+      <abbreviation></abbreviation>
+      <isinactive>F</isinactive>
+      <value>ETF</value>
+    </customvalue>
+    <customvalue scriptid="val_fondo">
+      <abbreviation></abbreviation>
+      <isinactive>F</isinactive>
+      <value>Fondo</value>
+    </customvalue>
+    <customvalue scriptid="val_estructurado">
+      <abbreviation></abbreviation>
+      <isinactive>F</isinactive>
+      <value>Estructurado</value>
+    </customvalue>
+    <customvalue scriptid="val_opcion">
+      <abbreviation></abbreviation>
+      <isinactive>F</isinactive>
+      <value>Opci&#243;n</value>
+    </customvalue>
+    <customvalue scriptid="val_commodity">
+      <abbreviation></abbreviation>
+      <isinactive>F</isinactive>
+      <value>Commodity</value>
+    </customvalue>
+    <customvalue scriptid="val_money_market">
+      <abbreviation></abbreviation>
+      <isinactive>F</isinactive>
+      <value>Money Market</value>
+    </customvalue>
+    <customvalue scriptid="val_otros">
+      <abbreviation></abbreviation>
+      <isinactive>F</isinactive>
+      <value>Otros</value>
+    </customvalue>
+  </customvalues>
+</customlist>

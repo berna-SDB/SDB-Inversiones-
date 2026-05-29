@@ -1,0 +1,20 @@
+<suitelet scriptid="customscript_sdb_dashboard_contratos_sl">
+  <description>Dashboard contratos ACLIMATAR V3 — POs, Bills, Payments, Item Receipts con links</description>
+  <isinactive>F</isinactive>
+  <name>SDB | Dashboard Contratos ACLIMATAR</name>
+  <notifyadmins>F</notifyadmins>
+  <notifyemails></notifyemails>
+  <notifyowner>T</notifyowner>
+  <notifyuser>F</notifyuser>
+  <scriptfile>[/SuiteScripts/sdb_dashboard_contratos_sl.js]</scriptfile>
+  <scriptdeployments>
+    <scriptdeployment scriptid="customdeploy_sdb_dashboard_contratos">
+      <availablewithoutlogin>F</availablewithoutlogin>
+      <isdeployed>T</isdeployed>
+      <loglevel>DEBUG</loglevel>
+      <runasrole>ADMINISTRATOR</runasrole>
+      <status>RELEASED</status>
+      <title>SDB | Dashboard Contratos ACLIMATAR</title>
+    </scriptdeployment>
+  </scriptdeployments>
+</suitelet>

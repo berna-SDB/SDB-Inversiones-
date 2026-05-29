@@ -1,0 +1,24 @@
+<customlist scriptid="customlist_sdb_inv_subtipo_fci">
+  <description>Subtipo de Fondo Común de Inversión</description>
+  <isinactive>F</isinactive>
+  <ismatrixoption>F</ismatrixoption>
+  <isordered>T</isordered>
+  <name>SDB | Subtipo FCI</name>
+  <customvalues>
+    <customvalue scriptid="val_fci1">
+      <abbreviation>F</abbreviation>
+      <isinactive>F</isinactive>
+      <value>Fondo de Inversión 1</value>
+    </customvalue>
+    <customvalue scriptid="val_fci2">
+      <abbreviation>F</abbreviation>
+      <isinactive>F</isinactive>
+      <value>Fondo de Inversión 2</value>
+    </customvalue>
+    <customvalue scriptid="val_fci3">
+      <abbreviation>F</abbreviation>
+      <isinactive>F</isinactive>
+      <value>Fondo de Inversión 3</value>
+    </customvalue>
+  </customvalues>
+</customlist>

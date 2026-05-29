@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Reporte Bills V3</title>
+<style>
+    body { font-family: -apple-system, Segoe UI, Roboto, sans-serif; margin: 24px; background: #f5f5f5; color: #222; }
+    h1 { margin: 0 0 8px 0; }
+    .subtitle { color: #666; margin: 0 0 20px 0; }
+    .baseurl { background: white; border: 1px solid #ddd; border-radius: 6px; padding: 12px 16px; margin-bottom: 20px; }
+    .baseurl label { font-weight: bold; display: block; margin-bottom: 6px; }
+    .baseurl input { width: 100%; padding: 8px; font-family: monospace; font-size: 14px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+    .hint { color: #888; font-size: 12px; margin-top: 4px; }
+    table { width: 100%; border-collapse: collapse; background: white; border-radius: 6px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+    th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid #eee; }
+    th { background: #333; color: white; font-weight: 600; font-size: 13px; text-transform: uppercase; }
+    tr:hover { background: #fafafa; }
+    a.link { color: #1a73e8; text-decoration: none; font-weight: 600; }
+    a.link:hover { text-decoration: underline; }
+    .po-link { color: #777; font-size: 13px; }
+    .po-link:hover { color: #1a73e8; }
+    .right { text-align: right; font-family: monospace; }
+    .totales { margin-top: 20px; background: white; padding: 14px 18px; border-radius: 6px; font-family: monospace; }
+    .totales strong { color: #222; }
+    .open-all { margin: 12px 0; padding: 10px 16px; background: #1a73e8; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; }
+    .open-all:hover { background: #1557b0; }
+</style>
+</head>
+<body>
+    <h1>Bills V3 — Reporte de Creación</h1>
+    <p class="subtitle">15 vendor bills creadas desde POs V2 (125873-125876) — fechas +1 mes</p>
+
+    <div class="baseurl">
+        <label for="baseUrl">Base URL de tu cuenta NetSuite</label>
+        <input id="baseUrl" type="text" placeholder="https://XXXXXXX.app.netsuite.com" value="https://system.netsuite.com">
+        <div class="hint">Ej: <code>https://td2956891.app.netsuite.com</code>. Si no sabés, dejá <code>system.netsuite.com</code> y redirige (si estás logueado).</div>
+    </div>
+
+    <button class="open-all" onclick="openAll()">Abrir las 15 bills en pestañas</button>
+
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>External ID</th>
+                <th>Bill ID</th>
+                <th class="right">Rate</th>
+                <th>Ccy</th>
+                <th>Fecha</th>
+                <th>PO</th>
+            </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+    </table>
+
+    <div class="totales">
+        <strong>Totales:</strong> ARS 15,850,861.61 &nbsp;|&nbsp; USD 276,257.00
+    </div>
+
+<script>
+const bills = [
+    { order: 16, ext: 'ANTI_12606_V3', id: 125877, rate: 109044.12, ccy: 'USD', date: '07/01/2025', po: 125873 },
+    { order: 17, ext: 'ANTI_12607_V3', id: 125878, rate: 104131.67, ccy: 'USD', date: '07/01/2025', po: 125875 },
+    { order: 18, ext: 'C1_ARS_12606_V3', id: 125879, rate: 529670.31, ccy: 'ARS', date: '08/01/2025', po: 125874 },
+    { order: 19, ext: 'MC1_ARS_12606_V3', id: 125880, rate: 55241.11, ccy: 'ARS', date: '08/01/2025', po: 125874 },
+    { order: 20, ext: 'C1_USD_12606_V3', id: 125881, rate: 1263.72, ccy: 'USD', date: '08/01/2025', po: 125873 },
+    { order: 21, ext: 'C2_ARS_12606_V3', id: 125882, rate: 3365745.99, ccy: 'ARS', date: '10/01/2025', po: 125874 },
+    { order: 22, ext: 'MC2_ARS_12606_V3', id: 125883, rate: 874115.22, ccy: 'ARS', date: '10/01/2025', po: 125874 },
+    { order: 23, ext: 'C2_USD_12606_V3', id: 125884, rate: 3698.56, ccy: 'USD', date: '10/01/2025', po: 125873 },
+    { order: 24, ext: 'C3_ARS_12606_V3', id: 125885, rate: 379294.80, ccy: 'ARS', date: '11/01/2025', po: 125874 },
+    { order: 25, ext: 'MC3_ARS_12606_V3', id: 125886, rate: 98506.35, ccy: 'ARS', date: '11/01/2025', po: 125874 },
+    { order: 26, ext: 'C3_USD_12606_V3', id: 125887, rate: 533.15, ccy: 'USD', date: '11/01/2025', po: 125873 },
+    { order: 27, ext: 'C4_ARS_12606_V3', id: 125888, rate: 7021740.11, ccy: 'ARS', date: '12/01/2025', po: 125874 },
+    { order: 28, ext: 'C1_ARS_12607_V3', id: 125889, rate: 2551102.24, ccy: 'ARS', date: '12/01/2025', po: 125876 },
+    { order: 29, ext: 'C4_USD_12606_V3', id: 125890, rate: 31269.87, ccy: 'USD', date: '12/01/2025', po: 125875 },
+    { order: 30, ext: 'C1_USD_12607_V3', id: 125891, rate: 26952.48, ccy: 'USD', date: '12/01/2025', po: 125875 }
+];
+
+const baseInput = document.getElementById('baseUrl');
+const tbody = document.getElementById('tbody');
+
+function billUrl(id) {
+    const base = baseInput.value.replace(/\/$/, '');
+    return `${base}/app/accounting/transactions/vendbill.nl?id=${id}`;
+}
+
+function poUrl(id) {
+    const base = baseInput.value.replace(/\/$/, '');
+    return `${base}/app/accounting/transactions/purchord.nl?id=${id}`;
+}
+
+function render() {
+    tbody.innerHTML = bills.map(b => `
+        <tr>
+            <td>${b.order}</td>
+            <td>${b.ext}</td>
+            <td><a class="link" href="${billUrl(b.id)}" target="_blank">${b.id}</a></td>
+            <td class="right">${b.rate.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+            <td>${b.ccy}</td>
+            <td>${b.date}</td>
+            <td><a class="po-link" href="${poUrl(b.po)}" target="_blank">${b.po}</a></td>
+        </tr>
+    `).join('');
+}
+
+function openAll() {
+    bills.forEach(b => window.open(billUrl(b.id), '_blank'));
+}
+
+baseInput.addEventListener('input', render);
+render();
+</script>
+</body>
+</html>

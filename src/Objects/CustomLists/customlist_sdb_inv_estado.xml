@@ -1,0 +1,24 @@
+<customlist scriptid="customlist_sdb_inv_estado">
+  <description>Estado de la inversión</description>
+  <isinactive>F</isinactive>
+  <ismatrixoption>F</ismatrixoption>
+  <isordered>T</isordered>
+  <name>SDB | Estado de Inversión</name>
+  <customvalues>
+    <customvalue scriptid="val_activa">
+      <abbreviation>A</abbreviation>
+      <isinactive>F</isinactive>
+      <value>Activa</value>
+    </customvalue>
+    <customvalue scriptid="val_rescatada_parcial">
+      <abbreviation>R</abbreviation>
+      <isinactive>F</isinactive>
+      <value>Rescatada Parcial</value>
+    </customvalue>
+    <customvalue scriptid="val_cancelada">
+      <abbreviation>C</abbreviation>
+      <isinactive>F</isinactive>
+      <value>Cancelada</value>
+    </customvalue>
+  </customvalues>
+</customlist>

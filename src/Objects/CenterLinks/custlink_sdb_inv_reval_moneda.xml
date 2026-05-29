@@ -1,0 +1,6 @@
+<centerlink scriptid="custlink_sdb_inv_reval_moneda">
+  <center>ACCOUNTCENTER</center>
+  <centercategory>[scriptid=custcentercategory_sdb_inv_operacio]</centercategory>
+  <label>Revaluación de Moneda</label>
+  <url>/app/site/hosting/scriptlet.nl?script=customscript_sdb_inv_reval_moneda_sl&amp;deploy=customdeploy_sdb_inv_reval_moneda_sl</url>
+</centerlink>
