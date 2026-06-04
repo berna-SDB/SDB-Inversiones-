@@ -76,6 +76,31 @@ define(['N/ui/serverWidget', 'N/search', 'N/record', 'N/runtime', 'N/log', 'N/ur
             return;
         }
 
+        // Endpoint JSON: preview del monto destino de una transferencia entre cuentas de cash.
+        // El cálculo real se vuelve a hacer en el POST (no se confía en el valor del cliente).
+        if (request.method === 'GET' && request.parameters.action === 'lookup_transfer') {
+            let out = { montoDestino: '', tcOrigen: '', tcDestino: '' };
+            try {
+                const monto = parseNum(request.parameters.monto || '');
+                const r = _calcularTransferencia(
+                    request.parameters.moneda_origen || '',
+                    request.parameters.moneda_destino || '',
+                    monto || 0,
+                    _parseTcDate(request.parameters.fecha || '')
+                );
+                out = {
+                    montoDestino: (monto && r.tcDestino > 0) ? r.montoDestino : '',
+                    tcOrigen: _fmtTc(r.tcOrigen),
+                    tcDestino: _fmtTc(r.tcDestino)
+                };
+            } catch (error) {
+                log.error('onRequest lookup_transfer', error.message);
+            }
+            response.setHeader({ name: 'Content-Type', value: 'application/json' });
+            response.write(JSON.stringify(out));
+            return;
+        }
+
         if (request.method === 'POST') {
             let msg = '';
             try {
@@ -187,7 +212,7 @@ define(['N/ui/serverWidget', 'N/search', 'N/record', 'N/runtime', 'N/log', 'N/ur
         html += '<div class="ext-h2">Fecha</div>';
         html += '<div style="margin:4px 0 12px 0;">'
             + '<input type="date" name="ext_fecha_master" value="' + _hoyIso() + '" onchange="applyFechaToAll()" style="width:200px;" />'
-            + '<span style="margin-left:10px;color:#666;font-size:12px;">Se aplica a la fecha de todas las filas (cash e instrumentos) y recalcula el TC. Podés editar cada fila después.</span>'
+            + '<span style="margin-left:10px;color:#666;font-size:12px;">Se aplica a la fecha de todas las filas (cash, instrumentos y transferencias) y recalcula el TC. Podés editar cada fila después.</span>'
             + '</div>';
 
         // ─── CASH ──────────────────────────────────────────────────
@@ -201,6 +226,18 @@ define(['N/ui/serverWidget', 'N/search', 'N/record', 'N/runtime', 'N/log', 'N/ur
         cashActual.forEach((c, i) => { html += rowCashExistente(c, i, cuentas, ctaBancoDefault, tcHoy(c.moneda)); });
         html += '</tbody></table></div>';
         html += `<button type="button" class="ext-btn" onclick="extAddCash()">+ Agregar cash</button>`;
+
+        // ─── TRANSFERENCIAS ENTRE CUENTAS ─────────────────────────
+        // Mueve saldo entre dos cash existentes. NO genera JE (solo ajusta el saldo de los records).
+        // El monto destino se calcula con el TC cruzado (por ARS) a la fecha elegida y es de solo lectura.
+        html += '<div class="ext-h2">Transferencias entre cuentas</div>';
+        html += '<div class="ext-wrap">';
+        html += '<table class="ext-tbl" id="tbl_transf"><thead><tr>'
+            + '<th>Cuenta Origen</th><th>Cuenta Destino</th>'
+            + '<th class="num">Monto Origen</th><th>Fecha</th>'
+            + '<th class="num">TC (orig→dest)</th><th class="num">Monto Destino</th>'
+            + '</tr></thead><tbody></tbody></table></div>';
+        html += `<button type="button" class="ext-btn" onclick="extAddTransf()">+ Agregar transferencia</button>`;
 
         // ─── INSTRUMENTOS ─────────────────────────────────────────
         html += '<div class="ext-h2">Instrumentos</div>';
@@ -218,20 +255,38 @@ define(['N/ui/serverWidget', 'N/search', 'N/record', 'N/runtime', 'N/log', 'N/ur
 
         html += `<input type="hidden" name="custpage_cash_count" id="custpage_cash_count" value="${cashActual.length}" />`;
         html += `<input type="hidden" name="custpage_inst_count" id="custpage_inst_count" value="${instActual.length}" />`;
+        html += `<input type="hidden" name="custpage_transf_count" id="custpage_transf_count" value="0" />`;
+
+        // Selects de transferencia. DESTINO: solo cash del comitente seleccionado. ORIGEN: cash de
+        // cualquier comitente (para traer fondos de otra cuenta). Operan sobre cash ya persistido;
+        // las filas nuevas que se agreguen en el form todavía no tienen id.
+        const cashDestino = cashActual.map(c => ({
+            id: c.id,
+            moneda: c.moneda,
+            label: `${c.monedaName || c.moneda} · ${c.nombre || ('#' + c.id)} (saldo ${fmt(c.saldoActual)})`
+        }));
+        const cashOrigen = buscarCashGlobal().map(c => ({
+            id: c.id,
+            moneda: c.moneda,
+            label: `${c.comitenteName || c.nombre || ('#' + c.id)} · ${c.monedaName || c.moneda} (saldo ${fmt(c.saldoActual)})`
+        }));
 
         const _sc = runtime.getCurrentScript();
         const tcLookupUrl = url.resolveScript({ scriptId: _sc.id, deploymentId: _sc.deploymentId, params: { action: 'lookup_tc' } });
+        const transferLookupUrl = url.resolveScript({ scriptId: _sc.id, deploymentId: _sc.deploymentId, params: { action: 'lookup_transfer' } });
         const reloadUrl = url.resolveScript({ scriptId: _sc.id, deploymentId: _sc.deploymentId });
 
         html += clientScript({
-            tipos, subtipos, monedas, cuentas,
+            tipos, subtipos, monedas, cuentas, cashOrigen, cashDestino,
             ctaBancoDefault: ctaBancoDefault || '',
-            tcLookupUrl, reloadUrl,
+            tcLookupUrl, transferLookupUrl, reloadUrl,
             baseCurrencyId: GLOBALS.BASE_CURRENCY_ID,
             hoyIso: _hoyIso()
         });
 
         tabla.defaultValue = html;
+        // Botón Volver → pantalla inicial (Suitelet sin comitente), vía window.open en extVolver.
+        form.addButton({ id: 'custpage_volver', label: 'Volver', functionName: 'extVolver' });
         form.addSubmitButton({ label: 'Confirmar Cierre' });
         context.response.writePage(form);
     }
@@ -244,8 +299,11 @@ define(['N/ui/serverWidget', 'N/search', 'N/record', 'N/runtime', 'N/log', 'N/ur
             window._subtipos = ${JSON.stringify(cfg.subtipos)};
             window._monedas = ${JSON.stringify(cfg.monedas)};
             window._cuentas = ${JSON.stringify(cfg.cuentas)};
+            window._cashOrigen = ${JSON.stringify(cfg.cashOrigen)};
+            window._cashDestino = ${JSON.stringify(cfg.cashDestino)};
             window._ctaBancoDefault = ${JSON.stringify(cfg.ctaBancoDefault)};
             window._tcLookupUrl = ${JSON.stringify(cfg.tcLookupUrl)};
+            window._transferLookupUrl = ${JSON.stringify(cfg.transferLookupUrl)};
             window._reloadUrl = ${JSON.stringify(cfg.reloadUrl)};
             window._baseCurrencyId = ${JSON.stringify(cfg.baseCurrencyId)};
             window._hoyIso = ${JSON.stringify(cfg.hoyIso)};
@@ -312,6 +370,61 @@ define(['N/ui/serverWidget', 'N/search', 'N/record', 'N/runtime', 'N/log', 'N/ur
                     + '<td><input type="checkbox" name="inst_baja_'+i+'" disabled /></td>';
                 document.querySelector('#tbl_inst tbody').appendChild(tr);
             };
+            window.extAddTransf = function(){
+                var c = document.getElementById('custpage_transf_count');
+                var i = parseInt(c.value); c.value = i+1;
+                var tr = document.createElement('tr');
+                tr.innerHTML = '<td>'+cashSelectHtml('transf_origen_'+i, i, 'origen')+'</td>'
+                    + '<td>'+cashSelectHtml('transf_destino_'+i, i, 'destino')+'</td>'
+                    + '<td class="num"><input type="text" name="transf_monto_'+i+'" oninput="extCalcTransf('+i+')" /></td>'
+                    + '<td><input type="date" name="transf_fecha_'+i+'" value="'+window._hoyIso+'" onchange="extCalcTransf('+i+')" /></td>'
+                    + '<td class="num"><input type="text" name="transf_tc_'+i+'" readonly style="background:#f4f6f8;width:90px;" /></td>'
+                    + '<td class="num"><input type="text" name="transf_monto_dest_'+i+'" readonly style="background:#f4f6f8;" /></td>';
+                document.querySelector('#tbl_transf tbody').appendChild(tr);
+            };
+            function cashSelectHtml(name, i, list){
+                var arr = (list === 'origen') ? window._cashOrigen : window._cashDestino;
+                var s = '<select name="'+name+'" onchange="extCalcTransf('+i+')"><option value=""></option>';
+                arr.forEach(function(ca){ s += '<option value="'+ca.id+'">'+ca.label+'</option>'; });
+                return s + '</select>';
+            }
+            function cashMoneda(id){
+                var lists = [window._cashOrigen, window._cashDestino];
+                for (var l=0; l<lists.length; l++){
+                    for (var k=0; k<lists[l].length; k++){
+                        if (String(lists[l][k].id) === String(id)) return lists[l][k].moneda;
+                    }
+                }
+                return '';
+            }
+            // Pide el monto destino (TC cruzado a la fecha) y completa los campos de solo lectura.
+            window.extCalcTransf = function(i){
+                var oEl = document.querySelector('[name="transf_origen_'+i+'"]');
+                var dEl = document.querySelector('[name="transf_destino_'+i+'"]');
+                var mEl = document.querySelector('[name="transf_monto_'+i+'"]');
+                var fEl = document.querySelector('[name="transf_fecha_'+i+'"]');
+                var tcEl = document.querySelector('[name="transf_tc_'+i+'"]');
+                var mdEl = document.querySelector('[name="transf_monto_dest_'+i+'"]');
+                if (!oEl || !dEl || !mEl || !fEl) return;
+                var origenId = oEl.value, destId = dEl.value, monto = mEl.value, fecha = fEl.value;
+                if (tcEl) tcEl.value = ''; if (mdEl) mdEl.value = '';
+                if (!origenId || !destId || !monto || !fecha) return;
+                var u = window._transferLookupUrl
+                    + '&moneda_origen=' + encodeURIComponent(cashMoneda(origenId))
+                    + '&moneda_destino=' + encodeURIComponent(cashMoneda(destId))
+                    + '&fecha=' + encodeURIComponent(fecha)
+                    + '&monto=' + encodeURIComponent(monto);
+                fetch(u, { credentials: 'same-origin' })
+                    .then(function(r){ return r.text(); })
+                    .then(function(txt){
+                        var d; try { d = JSON.parse(txt); } catch(e){ console.error('[Transfer] respuesta no-JSON', txt.slice(0,120)); return; }
+                        if (!d) return;
+                        var tcO = parseFloat(d.tcOrigen), tcD = parseFloat(d.tcDestino);
+                        if (tcEl) tcEl.value = (isFinite(tcO) && isFinite(tcD) && tcD > 0) ? window._fmtTc(tcO / tcD) : '';
+                        if (mdEl && typeof d.montoDestino !== 'undefined') mdEl.value = d.montoDestino;
+                    })
+                    .catch(function(e){ console.error('[Transfer] fetch', e); });
+            };
             function selectHtml(name, opts, attrs){
                 var s = '<select name="'+name+'"'+(attrs ? ' '+attrs : '')+'><option value=""></option>';
                 opts.forEach(function(o){ s += '<option value="'+o.id+'">'+o.name+'</option>'; });
@@ -349,18 +462,23 @@ define(['N/ui/serverWidget', 'N/search', 'N/record', 'N/runtime', 'N/log', 'N/ur
                     if (t) t.value = txt;
                 }
             };
-            // Copia la fecha maestra a todas las filas (cash e inst) y recalcula el TC de cada una.
+            // Copia la fecha maestra a todas las filas (cash, inst y transferencias) y recalcula su TC.
             window.applyFechaToAll = function(){
                 var mf = document.querySelector('input[name="ext_fecha_master"]');
                 if (!mf) return;
                 var fecha = mf.value;
-                var dates = document.querySelectorAll('input[type="date"][name^="cash_fecha_"], input[type="date"][name^="inst_fecha_"]');
+                var dates = document.querySelectorAll('input[type="date"][name^="cash_fecha_"], input[type="date"][name^="inst_fecha_"], input[type="date"][name^="transf_fecha_"]');
                 for (var k=0; k<dates.length; k++){
                     dates[k].value = fecha;
-                    var parts = dates[k].name.split('_'); // ['cash'|'inst','fecha','<i>']
-                    if (window.extLookupTc) window.extLookupTc(parts[0], parts[2]);
+                    var parts = dates[k].name.split('_'); // ['cash'|'inst'|'transf','fecha','<i>']
+                    if (parts[0] === 'transf') { if (window.extCalcTransf) window.extCalcTransf(parts[2]); }
+                    else if (window.extLookupTc) { window.extLookupTc(parts[0], parts[2]); }
                 }
             };
+            // Vuelve a la pantalla inicial (Suitelet sin comitente). _reloadUrl se arma con
+            // runtime.getCurrentScript() en el server (id + deployment, sin parámetros).
+            window.extVolver = function(){ window.open(window._reloadUrl, '_self'); };
+
             // Cambiar comitente/tipo recarga por GET (no postea el cierre). Confirmar pide confirmación.
             (function(){
                 function reload(){
@@ -449,10 +567,36 @@ define(['N/ui/serverWidget', 'N/search', 'N/record', 'N/runtime', 'N/log', 'N/ur
         search.create({
             type: EXT_CASH.RECORD_TYPE,
             filters: [[EXT_CASH.COMITENTE, 'anyof', comitenteId], 'AND', ['isinactive', 'is', 'F']],
-            columns: ['internalid', EXT_CASH.MONEDA, EXT_CASH.CTA_CONTABLE, EXT_CASH.CTA_DIF_CAMBIO, EXT_CASH.SALDO_ACTUAL, EXT_CASH.FECHA_ACTUAL]
+            columns: ['internalid', 'name', EXT_CASH.MONEDA, EXT_CASH.CTA_CONTABLE, EXT_CASH.CTA_DIF_CAMBIO, EXT_CASH.SALDO_ACTUAL, EXT_CASH.FECHA_ACTUAL]
         }).run().each(r => {
             res.push({
                 id: r.getValue('internalid'),
+                nombre: r.getValue('name'),
+                moneda: r.getValue(EXT_CASH.MONEDA),
+                monedaName: r.getText(EXT_CASH.MONEDA),
+                cta: r.getValue(EXT_CASH.CTA_CONTABLE),
+                ctaDifCambio: r.getValue(EXT_CASH.CTA_DIF_CAMBIO),
+                saldoActual: r.getValue(EXT_CASH.SALDO_ACTUAL)
+            });
+            return true;
+        });
+        return res;
+    }
+
+    // Todo el cash activo (de cualquier comitente). Se usa para los ORÍGENES de transferencia,
+    // que pueden ser cuentas de otro comitente. El comitenteName sirve para etiquetar el select.
+    function buscarCashGlobal() {
+        const res = [];
+        search.create({
+            type: EXT_CASH.RECORD_TYPE,
+            filters: [['isinactive', 'is', 'F']],
+            columns: ['internalid', 'name', EXT_CASH.COMITENTE, EXT_CASH.MONEDA, EXT_CASH.CTA_CONTABLE, EXT_CASH.CTA_DIF_CAMBIO, EXT_CASH.SALDO_ACTUAL]
+        }).run().each(r => {
+            res.push({
+                id: r.getValue('internalid'),
+                nombre: r.getValue('name'),
+                comitente: r.getValue(EXT_CASH.COMITENTE),
+                comitenteName: r.getText(EXT_CASH.COMITENTE),
                 moneda: r.getValue(EXT_CASH.MONEDA),
                 monedaName: r.getText(EXT_CASH.MONEDA),
                 cta: r.getValue(EXT_CASH.CTA_CONTABLE),
@@ -550,17 +694,21 @@ define(['N/ui/serverWidget', 'N/search', 'N/record', 'N/runtime', 'N/log', 'N/ur
 
         const cashCount = parseInt(request.parameters.custpage_cash_count || '0', 10);
         const instCount = parseInt(request.parameters.custpage_inst_count || '0', 10);
+        const transfCount = parseInt(request.parameters.custpage_transf_count || '0', 10);
 
         // ── Carga única (evita N+1): mapas por id y por moneda ──
         const cashList = buscarCash(comitenteId);
         const instList = buscarInstrumentos(comitenteId, '');       // todos, sin filtro de tipo
         const cashById = {}, cashByMoneda = {}, instById = {}, monedasConInst = {}, ctaResByTipo = {};
         cashList.forEach(c => { cashById[c.id] = c; if (!(String(c.moneda) in cashByMoneda)) cashByMoneda[String(c.moneda)] = c.id; });
+        // Cash de cualquier comitente — un origen de transferencia puede ser cuenta de otro comitente.
+        const cashByIdAll = {};
+        buscarCashGlobal().forEach(c => { cashByIdAll[c.id] = c; });
         instList.forEach(x => { instById[x.id] = x; monedasConInst[String(x.moneda)] = true; });
         buscarTipos().forEach(t => { ctaResByTipo[t.id] = t.ctaResultado; });
 
         const jeLines = [];
-        const cambios = { altas: 0, updates: 0, bajas: 0 };
+        const cambios = { altas: 0, updates: 0, bajas: 0, transferencias: 0 };
         const errores = [];
         const saldoDisp = {};          // saldo de cash disponible en memoria (running balance)
         const cashAActualizar = {};    // saldos finales a persistir por impacto de instrumentos
@@ -570,7 +718,7 @@ define(['N/ui/serverWidget', 'N/search', 'N/record', 'N/runtime', 'N/log', 'N/ur
         const _hayInstrumentoEnMoneda = (m) => !!monedasConInst[String(m || '')];
         const _saldoCash = (cashId) => {
             if (!(cashId in saldoDisp)) {
-                const c = cashById[cashId];
+                const c = cashById[cashId] || cashByIdAll[cashId];
                 saldoDisp[cashId] = c ? (parseNum(c.saldoActual) || 0) : 0;
             }
             return saldoDisp[cashId];
@@ -590,6 +738,15 @@ define(['N/ui/serverWidget', 'N/search', 'N/record', 'N/runtime', 'N/log', 'N/ur
             try { procesarFilaCash(i); } catch (error) {
                 errores.push(`Cash fila ${i}: ${error.message}`);
                 log.error('procesarFilaCash', error.message);
+            }
+        }
+        // ─── TRANSFERENCIAS ENTRE CUENTAS ────────────────────────
+        // Después del cash (ven los saldos ya actualizados) y antes de instrumentos
+        // (el destino queda disponible para fondear un alta en la misma confirmación).
+        for (let i = 0; i < transfCount; i++) {
+            try { procesarFilaTransferencia(i); } catch (error) {
+                errores.push(`Transferencia fila ${i}: ${error.message}`);
+                log.error('procesarFilaTransferencia', error.message);
             }
         }
         // ─── INSTRUMENTOS ────────────────────────────────────────
@@ -617,7 +774,7 @@ define(['N/ui/serverWidget', 'N/search', 'N/record', 'N/runtime', 'N/log', 'N/ur
             if (jeResult.skipped > 0) jeSkippedMsg = ` ${jeResult.skipped} línea(s) sin contrapartida — registrar JE manualmente.`;
         }
 
-        let msg = `Procesado. Altas: ${cambios.altas} · Updates: ${cambios.updates} · Bajas: ${cambios.bajas}.${jeSkippedMsg}`;
+        let msg = `Procesado. Altas: ${cambios.altas} · Updates: ${cambios.updates} · Bajas: ${cambios.bajas} · Transferencias: ${cambios.transferencias}.${jeSkippedMsg}`;
         if (errores.length) msg += ` <span style="color:#c62828;">⚠ ${escapeHtml(errores.join(' | '))}</span>`;
         if (jeUrls.length) {
             const links = jeUrls.map((u, i) => `<a href="${u}" target="_blank">Ver JE${jeUrls.length > 1 ? ' ' + (i + 1) : ''}</a>`).join(' · ');
@@ -665,7 +822,10 @@ define(['N/ui/serverWidget', 'N/search', 'N/record', 'N/runtime', 'N/log', 'N/ur
                         type: EXT_CASH.RECORD_TYPE, id,
                         values: { [EXT_CASH.SALDO_ACTUAL]: saldoIn, [EXT_CASH.FECHA_ACTUAL]: parseDate(fecha), [EXT_CASH.TC]: tc || '' }
                     });
-                    jeLines.push({ kind: 'cash_update', cta, ctaContra: c ? c.ctaDifCambio : '', monto: dif, cashId: id, moneda, tc });
+                    // Contrapartida del update: la Cuenta Diferencia de Cambio del cash; si el record no
+                    // la tiene cargada, se usa la Cuenta Banco de la fila (la maestra) como fallback.
+                    const contraUpdate = (c && c.ctaDifCambio) ? c.ctaDifCambio : ctaContra;
+                    jeLines.push({ kind: 'cash_update', cta, ctaContra: contraUpdate, monto: dif, cashId: id, moneda, tc });
                     cambios.updates++;
                 }
                 return;
@@ -779,6 +939,44 @@ define(['N/ui/serverWidget', 'N/search', 'N/record', 'N/runtime', 'N/log', 'N/ur
                 jeLines.push({ kind: 'inst_alta', cta, ctaContra: GLOBALS.CTA_INTERESES_INVERSIONES, monto: valor, instId: nuevoInstId, moneda, tc });
                 cambios.altas++;
             }
+        }
+
+        // Transferencia entre cash existentes. El origen puede ser de OTRO comitente; el destino siempre
+        // es del comitente seleccionado. NO genera JE (decisión de negocio): solo descuenta el monto del
+        // origen y acredita el equivalente convertido en el destino. El monto destino se recalcula acá
+        // (no se confía en el valor de solo lectura del cliente).
+        function procesarFilaTransferencia(i) {
+            const origenId = request.parameters[`transf_origen_${i}`] || '';
+            const destId = request.parameters[`transf_destino_${i}`] || '';
+            const monto = parseNum(request.parameters[`transf_monto_${i}`]);
+            const fecha = request.parameters[`transf_fecha_${i}`];
+
+            // Fila vacía (agregada pero no completada): se ignora sin error.
+            if (!origenId && !destId && monto === null) return;
+            if (!origenId || !destId) { errores.push(`Transferencia fila ${i}: falta cuenta origen o destino.`); return; }
+            if (origenId === destId) { errores.push(`Transferencia fila ${i}: origen y destino son la misma cuenta.`); return; }
+            if (monto === null || monto <= 0) { errores.push(`Transferencia fila ${i}: el monto debe ser mayor a cero.`); return; }
+
+            // Origen: cualquier comitente. Destino: debe ser del comitente seleccionado (está en cashById).
+            const cOrigen = cashByIdAll[origenId] || cashById[origenId];
+            const cDest = cashById[destId];
+            if (!cOrigen) { errores.push(`Transferencia fila ${i}: la cuenta origen no existe o está inactiva.`); return; }
+            if (!cDest) { errores.push(`Transferencia fila ${i}: el destino debe ser una cuenta de cash del comitente seleccionado.`); return; }
+
+            _trackFecha(fecha);
+            const { tcOrigen, tcDestino, montoDestino } = _calcularTransferencia(cOrigen.moneda, cDest.moneda, monto, parseDate(fecha) || new Date());
+            if (!(tcOrigen > 0) || !(tcDestino > 0) || montoDestino <= 0) {
+                errores.push(`Transferencia fila ${i}: no se pudo calcular el tipo de cambio a la fecha indicada.`);
+                return;
+            }
+            if (monto > _saldoCash(origenId)) {
+                errores.push(`Transferencia fila ${i}: el monto (${monto}) supera el saldo disponible (${_saldoCash(origenId)}) de la cuenta origen.`);
+                return;
+            }
+
+            _aplicarACash(origenId, -monto);
+            _aplicarACash(destId, montoDestino);
+            cambios.transferencias++;
         }
     }
 
@@ -916,6 +1114,17 @@ define(['N/ui/serverWidget', 'N/search', 'N/record', 'N/runtime', 'N/log', 'N/ur
             log.error('_tipoCambio', `moneda=${monedaId} fecha=${fecha} err=${error.message}`);
             return 1;
         }
+    }
+
+    // Convierte un monto de monedaOrigen a monedaDestino con el TC cruzado vía la base (ARS):
+    //   montoDestino = monto × (origen→ARS) / (destino→ARS)
+    // Misma moneda → cross = 1 (los _tipoCambio se cancelan). Fórmula única usada en el preview y en el POST.
+    function _calcularTransferencia(monedaOrigen, monedaDestino, monto, fecha) {
+        const tcOrigen = _tipoCambio(monedaOrigen, fecha);
+        const tcDestino = _tipoCambio(monedaDestino, fecha);
+        const m = parseFloat(monto) || 0;
+        const montoDestino = tcDestino > 0 ? parseFloat((m * tcOrigen / tcDestino).toFixed(2)) : 0;
+        return { tcOrigen, tcDestino, montoDestino };
     }
 
     // El TC siempre se muestra con 4 decimales (requerimiento PM). Ej: 1000.5 → "1000.5000".
