@@ -10,18 +10,34 @@
  *  - dar de baja líneas existentes
  * Al confirmar genera un Journal Entry con las diferencias y actualiza los records.
  */
-define(['N/ui/serverWidget', 'N/search', 'N/record', 'N/runtime', 'N/log', 'N/url', 'N/redirect'],
-(serverWidget, search, record, runtime, log, url, redirect) => {
+define(['N/ui/serverWidget', 'N/search', 'N/record', 'N/runtime', 'N/log', 'N/url', 'N/redirect', 'N/currency'],
+(serverWidget, search, record, runtime, log, url, redirect, currency) => {
 
-    const REC_COMITENTE   = 'customrecord_sdb_inv_ext_comitente';
-    const REC_INSTRUMENTO = 'customrecord_sdb_inv_ext_instrumento';
-    const REC_CASH        = 'customrecord_sdb_inv_ext_cash';
-    const REC_TIPO        = 'customrecord_sdb_inv_ext_tipo';
+    const REC_COMITENTE    = 'customrecord_sdb_inv_ext_comitente';
+    const REC_INSTRUMENTO  = 'customrecord_sdb_inv_ext_instrumento';
+    const REC_CASH         = 'customrecord_sdb_inv_ext_cash';
+    const REC_TIPO         = 'customrecord_sdb_inv_ext_tipo';
     const SUBSIDIARY_ID    = '6';  // Subsidiaria fija para los asientos del exterior
     const BASE_CURRENCY_ID = '1';  // ARS
 
+    const CUENTA_INTERESES_INVERSIONES = '1025';
+    const CUENTA_INVERSIONES_EXTERIOR = '222';
+
     // ─────────────────────────── ENTRY ────────────────────────────────
     function onRequest(context) {
+        // Endpoint JSON: TC por (moneda, fecha) → consumido por el JS de cada fila al cambiar la fecha.
+        if (context.request.method === 'GET' && context.request.parameters.action === 'lookup_tc') {
+            const fechaStr = context.request.parameters.fecha || '';
+            const monedaId = context.request.parameters.moneda || '';
+            let tc = 1;
+            try {
+                tc = _tipoCambio(monedaId, _parseTcDate(fechaStr));
+            } catch (e) { /* silent */ }
+            context.response.setHeader({ name: 'Content-Type', value: 'application/json' });
+            context.response.write(JSON.stringify({ tc: tc }));
+            return;
+        }
+
         if (context.request.method === 'POST') {
             let msg = '';
             try {
@@ -37,6 +53,7 @@ define(['N/ui/serverWidget', 'N/search', 'N/record', 'N/runtime', 'N/log', 'N/ur
                 deploymentId: script.deploymentId,
                 parameters: {
                     custpage_comitente: context.request.parameters.custpage_comitente || '',
+                    custpage_tipo: context.request.parameters.custpage_tipo || '',
                     msg: msg.substring(0, 1800)
                 }
             });
@@ -51,9 +68,11 @@ define(['N/ui/serverWidget', 'N/search', 'N/record', 'N/runtime', 'N/log', 'N/ur
         const form = serverWidget.createForm({ title: 'Carga Cierre Inversiones Exterior' });
 
         const comitenteId = context.request.parameters.custpage_comitente || '';
+        const tipoId = context.request.parameters.custpage_tipo || '';
         const comitentes = buscarComitentes();
         const comitenteSel = comitentes.find(c => c.id === comitenteId);
         const ctaOrigenDefault = comitenteSel ? comitenteSel.ctaOrigen : '';
+        const tipos = buscarTipos();
 
         const selCom = form.addField({
             id: 'custpage_comitente',
@@ -65,6 +84,20 @@ define(['N/ui/serverWidget', 'N/search', 'N/record', 'N/runtime', 'N/log', 'N/ur
             value: c.id,
             text: c.name,
             isSelected: c.id === comitenteId
+        }));
+
+        // Filtro opcional por Tipo de instrumento. Vacío = todos (comportamiento actual).
+        // Solo afecta la tabla de Instrumentos; Cash no se filtra.
+        const selTipo = form.addField({
+            id: 'custpage_tipo',
+            type: serverWidget.FieldType.SELECT,
+            label: 'Tipo'
+        });
+        selTipo.addSelectOption({ value: '', text: '-- Todos --' });
+        tipos.forEach(t => selTipo.addSelectOption({
+            value: t.id,
+            text: t.name,
+            isSelected: t.id === tipoId
         }));
 
         if (!comitenteId) {
@@ -80,11 +113,19 @@ define(['N/ui/serverWidget', 'N/search', 'N/record', 'N/runtime', 'N/log', 'N/ur
         }
 
         const cashActual  = buscarCash(comitenteId);
-        const instActual  = buscarInstrumentos(comitenteId);
-        const tipos       = buscarTipos();
+        const instActual  = buscarInstrumentos(comitenteId, tipoId);
         const subtipos    = buscarSubtipos();
         const monedas     = buscarMonedas();
         const cuentas     = buscarCuentas();
+
+        // TC de hoy por moneda. La fecha por defecto de las filas es hoy y es igual para todas,
+        // así que el TC se calcula una sola vez por moneda (cacheado) y se usa como default del input.
+        const _tcHoyCache = {};
+        const tcHoy = (monedaId) => {
+            const key = String(monedaId || '');
+            if (!(key in _tcHoyCache)) _tcHoyCache[key] = _tipoCambio(monedaId, new Date());
+            return _tcHoyCache[key];
+        };
 
         const tabla = form.addField({
             id: 'custpage_tabla',
@@ -124,23 +165,30 @@ define(['N/ui/serverWidget', 'N/search', 'N/record', 'N/runtime', 'N/log', 'N/ur
             const fMaster = cuentas.find(c => String(c.id) === String(ctaOrigenDefault));
             if (fMaster) masterContraText = fMaster.name;
         }
-        html += '<div class="ext-h2">Cuenta Contra</div>';
+        html += '<div class="ext-h2">Cuenta Banco</div>';
         html += '<div style="margin:4px 0 12px 0;">'
               + `<input list="cuentas_datalist" name="ext_contra_master_text" value="${escapeHtml(masterContraText)}" oninput="syncCuenta(this,'ext_contra_master'); applyContraToAll();" style="width:260px;" />`
               + `<input type="hidden" name="ext_contra_master" value="${escapeHtml(ctaOrigenDefault || '')}" />`
-              + '<span style="margin-left:10px;color:#666;font-size:12px;">Se aplica a todas las filas (cash e instrumentos). Podés editar cada fila después.</span>'
+              + '<span style="margin-left:10px;color:#666;font-size:12px;">Se aplica a las filas de cash. Podés editar cada fila después.</span>'
+              + '</div>';
+
+        // ─── FECHA (maestro / default para todas las filas) ───
+        html += '<div class="ext-h2">Fecha</div>';
+        html += '<div style="margin:4px 0 12px 0;">'
+              + '<input type="date" name="ext_fecha_master" value="' + _hoyIso() + '" onchange="applyFechaToAll()" style="width:200px;" />'
+              + '<span style="margin-left:10px;color:#666;font-size:12px;">Se aplica a la fecha de todas las filas (cash e instrumentos) y recalcula el TC. Podés editar cada fila después.</span>'
               + '</div>';
 
         // ─── CASH ──────────────────────────────────────────────────
         html += '<div class="ext-h2">Cash</div>';
         html += '<div class="ext-wrap">';
         html += '<table class="ext-tbl" id="tbl_cash"><thead><tr>'
-              + '<th>ID</th><th>Moneda</th><th>Cuenta Contable</th><th>Cuenta Contra</th>'
+              + '<th>ID</th><th>Moneda</th><th>Cuenta Contable</th><th>Cuenta Banco</th>'
               + '<th class="num">Saldo Actual</th><th class="num">Saldo Nuevo</th>'
               + '<th>Fecha</th><th class="num">TC</th><th>Baja</th>'
               + '</tr></thead><tbody>';
         cashActual.forEach((c, i) => {
-            html += rowCashExistente(c, i, monedas, cuentas, ctaOrigenDefault);
+            html += rowCashExistente(c, i, monedas, cuentas, ctaOrigenDefault, tcHoy(c.moneda));
         });
         html += '</tbody></table>';
         html += '</div>';
@@ -151,13 +199,13 @@ define(['N/ui/serverWidget', 'N/search', 'N/record', 'N/runtime', 'N/log', 'N/ur
         html += '<div class="ext-wrap">';
         html += '<table class="ext-tbl" id="tbl_inst"><thead><tr>'
               + '<th>ID</th><th>Nombre</th><th>ISIN</th><th>Tipo</th><th>Subtipo</th>'
-              + '<th>Moneda</th><th>Cuenta Contable</th><th>Cuenta Contra</th>'
+              + '<th>Moneda</th><th>Cuenta Contable</th>'
               + '<th class="num">Cant. Actual</th><th class="num">Cant. Nueva</th>'
               + '<th class="num">Valor Actual</th><th class="num">Valor Nuevo</th>'
               + '<th>Fecha</th><th class="num">TC</th><th>Baja</th>'
               + '</tr></thead><tbody>';
         instActual.forEach((inst, i) => {
-            html += rowInstExistente(inst, i, tipos, subtipos, monedas, cuentas, ctaOrigenDefault);
+            html += rowInstExistente(inst, i, tipos, subtipos, monedas, cuentas, tcHoy(inst.moneda));
         });
         html += '</tbody></table>';
         html += '</div>';
@@ -167,12 +215,41 @@ define(['N/ui/serverWidget', 'N/search', 'N/record', 'N/runtime', 'N/log', 'N/ur
         html += `<input type="hidden" name="custpage_inst_count" id="custpage_inst_count" value="${instActual.length}" />`;
 
         // JS de agregar filas
+        const _sc = runtime.getCurrentScript();
+        const tcLookupUrl = url.resolveScript({
+            scriptId: _sc.id,
+            deploymentId: _sc.deploymentId,
+            params: { action: 'lookup_tc' }
+        });
+
         html += `<script>
             window._tipos = ${JSON.stringify(tipos)};
             window._subtipos = ${JSON.stringify(subtipos)};
             window._monedas = ${JSON.stringify(monedas)};
             window._cuentas = ${JSON.stringify(cuentas)};
             window._ctaOrigenDefault = ${JSON.stringify(ctaOrigenDefault || '')};
+            window._tcLookupUrl = ${JSON.stringify(tcLookupUrl)};
+            window._baseCurrencyId = ${JSON.stringify(BASE_CURRENCY_ID)};
+            window._hoyIso = ${JSON.stringify(_hoyIso())};
+            // Al cambiar la fecha de una fila, busca el TC (Moneda → ARS) y lo completa.
+            // Editable: el usuario puede pisar el valor a mano después.
+            window.extLookupTc = function(prefix, i){
+                var fEl = document.querySelector('[name="'+prefix+'_fecha_'+i+'"]');
+                var mEl = document.querySelector('[name="'+prefix+'_moneda_'+i+'"]');
+                var tEl = document.querySelector('[name="'+prefix+'_tc_'+i+'"]');
+                if (!fEl || !mEl || !tEl) return;
+                var fecha = fEl.value, moneda = mEl.value;
+                if (!fecha || !moneda) return;
+                if (String(moneda) === String(window._baseCurrencyId)) { tEl.value = '1'; return; }
+                var u = window._tcLookupUrl + '&fecha=' + encodeURIComponent(fecha) + '&moneda=' + encodeURIComponent(moneda);
+                fetch(u, { credentials: 'same-origin' })
+                    .then(function(r){ return r.text(); })
+                    .then(function(txt){
+                        var d; try { d = JSON.parse(txt); } catch(e){ console.error('[TC ext] respuesta no-JSON', txt.slice(0,120)); return; }
+                        if (d && typeof d.tc !== 'undefined') tEl.value = d.tc;
+                    })
+                    .catch(function(e){ console.error('[TC ext] fetch', e); });
+            };
             window.extAddCash = function(){
                 var c = document.getElementById('custpage_cash_count');
                 var i = parseInt(c.value); c.value = i+1;
@@ -181,12 +258,12 @@ define(['N/ui/serverWidget', 'N/search', 'N/record', 'N/runtime', 'N/log', 'N/ur
                 var _defContra = _mh ? _mh.value : window._ctaOrigenDefault;
                 var tr = document.createElement('tr');
                 tr.innerHTML = '<td><input type="hidden" name="cash_id_'+i+'" value="" />NUEVO</td>'
-                    + '<td>'+selectHtml('cash_moneda_'+i, window._monedas)+'</td>'
+                    + '<td>'+selectHtml('cash_moneda_'+i, window._monedas, 'onchange="extLookupTc(&#39;cash&#39;,'+i+')"')+'</td>'
                     + '<td>'+cuentaInputHtml('cash_cta_'+i, '')+'</td>'
                     + '<td>'+cuentaInputHtml('cash_contra_'+i, _defContra)+'</td>'
                     + '<td class="num">-</td>'
                     + '<td class="num"><input type="text" name="cash_saldo_'+i+'" /></td>'
-                    + '<td><input type="date" name="cash_fecha_'+i+'" /></td>'
+                    + '<td><input type="date" name="cash_fecha_'+i+'" value="'+window._hoyIso+'" onchange="extLookupTc(&#39;cash&#39;,'+i+')" /></td>'
                     + '<td class="num"><input type="text" name="cash_tc_'+i+'" /></td>'
                     + '<td><input type="checkbox" name="cash_baja_'+i+'" disabled /></td>';
                 tb.appendChild(tr);
@@ -195,28 +272,25 @@ define(['N/ui/serverWidget', 'N/search', 'N/record', 'N/runtime', 'N/log', 'N/ur
                 var c = document.getElementById('custpage_inst_count');
                 var i = parseInt(c.value); c.value = i+1;
                 var tb = document.querySelector('#tbl_inst tbody');
-                var _mh = document.querySelector('input[name="ext_contra_master"]');
-                var _defContra = _mh ? _mh.value : window._ctaOrigenDefault;
                 var tr = document.createElement('tr');
                 tr.innerHTML = '<td><input type="hidden" name="inst_id_'+i+'" value="" />NUEVO</td>'
                     + '<td><input type="text" name="inst_nombre_'+i+'" /></td>'
                     + '<td><input type="text" name="inst_isin_'+i+'" /></td>'
                     + '<td>'+selectHtml('inst_tipo_'+i, window._tipos)+'</td>'
                     + '<td>'+selectHtml('inst_subtipo_'+i, window._subtipos)+'</td>'
-                    + '<td>'+selectHtml('inst_moneda_'+i, window._monedas)+'</td>'
+                    + '<td>'+selectHtml('inst_moneda_'+i, window._monedas, 'onchange="extLookupTc(&#39;inst&#39;,'+i+')"')+'</td>'
                     + '<td>'+cuentaInputHtml('inst_cta_'+i, '')+'</td>'
-                    + '<td>'+cuentaInputHtml('inst_contra_'+i, _defContra)+'</td>'
                     + '<td class="num">-</td>'
                     + '<td class="num"><input type="text" name="inst_cant_'+i+'" /></td>'
                     + '<td class="num">-</td>'
                     + '<td class="num"><input type="text" name="inst_valor_'+i+'" /></td>'
-                    + '<td><input type="date" name="inst_fecha_'+i+'" /></td>'
+                    + '<td><input type="date" name="inst_fecha_'+i+'" value="'+window._hoyIso+'" onchange="extLookupTc(&#39;inst&#39;,'+i+')" /></td>'
                     + '<td class="num"><input type="text" name="inst_tc_'+i+'" /></td>'
                     + '<td><input type="checkbox" name="inst_baja_'+i+'" disabled /></td>';
                 tb.appendChild(tr);
             };
-            function selectHtml(name, opts){
-                var s = '<select name="'+name+'"><option value=""></option>';
+            function selectHtml(name, opts, attrs){
+                var s = '<select name="'+name+'"'+(attrs ? ' '+attrs : '')+'><option value=""></option>';
                 opts.forEach(function(o){ s += '<option value="'+o.id+'">'+o.name+'</option>'; });
                 return s + '</select>';
             }
@@ -245,11 +319,23 @@ define(['N/ui/serverWidget', 'N/search', 'N/record', 'N/runtime', 'N/log', 'N/ur
                 var mt = document.querySelector('input[name="ext_contra_master_text"]');
                 if (!mh || !mt) return;
                 var id = mh.value, txt = mt.value;
-                var hiddens = document.querySelectorAll('input[type="hidden"][name^="cash_contra_"], input[type="hidden"][name^="inst_contra_"]');
+                var hiddens = document.querySelectorAll('input[type="hidden"][name^="cash_contra_"]');
                 for (var k=0; k<hiddens.length; k++){
                     hiddens[k].value = id;
                     var t = document.querySelector('input[name="'+hiddens[k].name+'_text"]');
                     if (t) t.value = txt;
+                }
+            };
+            // Copia la fecha maestra a todas las filas (cash e inst) y recalcula el TC de cada una.
+            window.applyFechaToAll = function(){
+                var mf = document.querySelector('input[name="ext_fecha_master"]');
+                if (!mf) return;
+                var fecha = mf.value;
+                var dates = document.querySelectorAll('input[type="date"][name^="cash_fecha_"], input[type="date"][name^="inst_fecha_"]');
+                for (var k=0; k<dates.length; k++){
+                    dates[k].value = fecha;
+                    var parts = dates[k].name.split('_'); // ['cash'|'inst','fecha','<i>']
+                    if (window.extLookupTc) window.extLookupTc(parts[0], parts[2]);
                 }
             };
         </script>`;
@@ -260,7 +346,7 @@ define(['N/ui/serverWidget', 'N/search', 'N/record', 'N/runtime', 'N/log', 'N/ur
     }
 
     // ─────────────────────────── ROW HTML ─────────────────────────────
-    function rowCashExistente(c, i, monedas, cuentas, ctaOrigenDefault) {
+    function rowCashExistente(c, i, monedas, cuentas, ctaOrigenDefault, tcDefault) {
         return `<tr>
             <td><input type="hidden" name="cash_id_${i}" value="${c.id}" />${c.id}</td>
             <td>${escapeHtml(c.monedaName)}<input type="hidden" name="cash_moneda_${i}" value="${c.moneda}" /></td>
@@ -268,13 +354,13 @@ define(['N/ui/serverWidget', 'N/search', 'N/record', 'N/runtime', 'N/log', 'N/ur
             <td>${cuentaInputServerHtml(`cash_contra_${i}`, ctaOrigenDefault, cuentas)}</td>
             <td class="num">${fmt(c.saldoActual)}</td>
             <td class="num"><input type="text" name="cash_saldo_${i}" value="" placeholder="${fmt(c.saldoActual)}" /></td>
-            <td><input type="date" name="cash_fecha_${i}" /></td>
-            <td class="num"><input type="text" name="cash_tc_${i}" /></td>
+            <td><input type="date" name="cash_fecha_${i}" value="${_hoyIso()}" onchange="extLookupTc('cash',${i})" /></td>
+            <td class="num"><input type="text" name="cash_tc_${i}" value="${tcDefault != null ? tcDefault : ''}" /></td>
             <td><input type="checkbox" name="cash_baja_${i}" /></td>
         </tr>`;
     }
 
-    function rowInstExistente(inst, i, tipos, subtipos, monedas, cuentas, ctaOrigenDefault) {
+    function rowInstExistente(inst, i, tipos, subtipos, monedas, cuentas, tcDefault) {
         return `<tr>
             <td><input type="hidden" name="inst_id_${i}" value="${inst.id}" />${inst.id}</td>
             <td>${escapeHtml(inst.nombre)}</td>
@@ -283,13 +369,12 @@ define(['N/ui/serverWidget', 'N/search', 'N/record', 'N/runtime', 'N/log', 'N/ur
             <td>${escapeHtml(inst.subtipoName || '')}<input type="hidden" name="inst_subtipo_${i}" value="${inst.subtipo || ''}" /></td>
             <td>${escapeHtml(inst.monedaName)}<input type="hidden" name="inst_moneda_${i}" value="${inst.moneda}" /></td>
             <td>${cuentaInputServerHtml(`inst_cta_${i}`, inst.cta, cuentas)}</td>
-            <td>${cuentaInputServerHtml(`inst_contra_${i}`, ctaOrigenDefault, cuentas)}</td>
             <td class="num">${fmt(inst.cantidad)}</td>
             <td class="num"><input type="text" name="inst_cant_${i}" value="" placeholder="${fmt(inst.cantidad)}" /></td>
             <td class="num">${fmt(inst.valorActual)}</td>
             <td class="num"><input type="text" name="inst_valor_${i}" value="" placeholder="${fmt(inst.valorActual)}" /></td>
-            <td><input type="date" name="inst_fecha_${i}" /></td>
-            <td class="num"><input type="text" name="inst_tc_${i}" /></td>
+            <td><input type="date" name="inst_fecha_${i}" value="${_hoyIso()}" onchange="extLookupTc('inst',${i})" /></td>
+            <td class="num"><input type="text" name="inst_tc_${i}" value="${tcDefault != null ? tcDefault : ''}" /></td>
             <td><input type="checkbox" name="inst_baja_${i}" /></td>
         </tr>`;
     }
@@ -297,15 +382,16 @@ define(['N/ui/serverWidget', 'N/search', 'N/record', 'N/runtime', 'N/log', 'N/ur
     // ─────────────────────────── BÚSQUEDAS ────────────────────────────
     function buscarComitentes() {
         const res = [];
-        // Intento con el campo nuevo; si todavía no existe, fallback sin él.
-        let columns = ['internalid', 'name', 'custrecord_sdb_extcc_cta_origen'];
+        // Default de "Cuenta Banco" = custrecord_sdb_extcc_cuenta_de_banco del comitente.
+        // Si el campo todavía no existe, fallback sin él.
+        let columns = ['internalid', 'name', 'custrecord_sdb_extcc_cuenta_de_banco'];
         let withOrigen = true;
         try {
             search.create({ type: REC_COMITENTE, filters: [['isinactive', 'is', 'F']], columns }).run().each(r => {
                 res.push({
                     id: r.getValue('internalid'),
                     name: r.getValue('name'),
-                    ctaOrigen: r.getValue('custrecord_sdb_extcc_cta_origen')
+                    ctaOrigen: r.getValue('custrecord_sdb_extcc_cuenta_de_banco')
                 });
                 return true;
             });
@@ -352,14 +438,16 @@ define(['N/ui/serverWidget', 'N/search', 'N/record', 'N/runtime', 'N/log', 'N/ur
         return res;
     }
 
-    function buscarInstrumentos(comitenteId) {
+    function buscarInstrumentos(comitenteId, tipoId) {
         const res = [];
+        const filters = [
+            ['custrecord_sdb_extinst_comitente', 'anyof', comitenteId],
+            'AND', ['isinactive', 'is', 'F']
+        ];
+        if (tipoId) filters.push('AND', ['custrecord_sdb_extinst_tipo', 'anyof', tipoId]);
         search.create({
             type: REC_INSTRUMENTO,
-            filters: [
-                ['custrecord_sdb_extinst_comitente', 'anyof', comitenteId],
-                'AND', ['isinactive', 'is', 'F']
-            ],
+            filters: filters,
             columns: [
                 'internalid', 'name',
                 'custrecord_sdb_extinst_isin',
@@ -474,6 +562,21 @@ define(['N/ui/serverWidget', 'N/search', 'N/record', 'N/runtime', 'N/log', 'N/ur
 
         const jeLines = [];
         const cambios = { altas: 0, updates: 0, bajas: 0 };
+        const errores = [];
+        // Saldo de cash disponible por cuenta (en memoria), para validar y descontar las altas
+        // de instrumentos. Se persiste al final. cashAActualizar = saldos finales a guardar.
+        const saldoDisp = {};
+        const cashAActualizar = {};
+        // Saldo disponible del cash (lazy desde DB, ya refleja lo actualizado en el loop de Cash).
+        const _saldoCash = (cashId) => {
+            if (!(cashId in saldoDisp)) saldoDisp[cashId] = parseNum(getFieldValue(REC_CASH, cashId, 'custrecord_sdb_extcash_saldo_actual')) || 0;
+            return saldoDisp[cashId];
+        };
+        // Impacta el cash: delta>0 acredita (devuelve), delta<0 debita (consume). Persiste al final.
+        const _aplicarACash = (cashId, delta) => {
+            saldoDisp[cashId] = parseFloat((_saldoCash(cashId) + delta).toFixed(2));
+            cashAActualizar[cashId] = saldoDisp[cashId];
+        };
         let fechaCierre = null;
 
         // ─── CASH ─────────────────────────────────────────────────
@@ -493,7 +596,12 @@ define(['N/ui/serverWidget', 'N/search', 'N/record', 'N/runtime', 'N/log', 'N/ur
             if (id && baja) {
                 const saldoAnt = parseNum(getFieldValue(REC_CASH, id, 'custrecord_sdb_extcash_saldo_actual'));
                 const ctaAnt = getFieldValue(REC_CASH, id, 'custrecord_sdb_extcash_cta_contable');
-                record.submitFields({ type: REC_CASH, id, values: { isinactive: true, custrecord_sdb_extcash_saldo_actual: 0 } });
+                // Si todavía hay instrumentos en esa moneda, el cash queda en cero pero activo
+                // (para poder recibir el valor que devuelvan esas bajas/ajustes de instrumentos).
+                const hayInstrumentos = existeInstrumentoActivoEnMoneda(comitenteId, moneda);
+                const valuesBaja = { custrecord_sdb_extcash_saldo_actual: 0 };
+                if (!hayInstrumentos) valuesBaja.isinactive = true;
+                record.submitFields({ type: REC_CASH, id, values: valuesBaja });
                 jeLines.push({ kind: 'cash_baja', cta: ctaAnt, ctaContra, monto: saldoAnt, cashId: id, moneda, tc });
                 cambios.bajas++;
                 continue;
@@ -542,7 +650,6 @@ define(['N/ui/serverWidget', 'N/search', 'N/record', 'N/runtime', 'N/log', 'N/ur
             const subtipo   = request.parameters[`inst_subtipo_${i}`];
             const moneda    = request.parameters[`inst_moneda_${i}`];
             const cta       = request.parameters[`inst_cta_${i}`];
-            const ctaContra = request.parameters[`inst_contra_${i}`];
             const cant      = parseNum(request.parameters[`inst_cant_${i}`]);
             const valor     = parseNum(request.parameters[`inst_valor_${i}`]);
             const fecha     = request.parameters[`inst_fecha_${i}`];
@@ -553,18 +660,37 @@ define(['N/ui/serverWidget', 'N/search', 'N/record', 'N/runtime', 'N/log', 'N/ur
             if (fechaInstParsed && (!fechaCierre || fechaInstParsed > fechaCierre)) fechaCierre = fechaInstParsed;
 
             if (id && baja) {
-                const valorAnt = parseNum(getFieldValue(REC_INSTRUMENTO, id, 'custrecord_sdb_extinst_valor_actual'));
+                const valorAnt = parseNum(getFieldValue(REC_INSTRUMENTO, id, 'custrecord_sdb_extinst_valor_actual')) || 0;
                 const ctaInst = getFieldValue(REC_INSTRUMENTO, id, 'custrecord_sdb_extinst_cta_contable');
                 record.submitFields({ type: REC_INSTRUMENTO, id, values: { isinactive: true, custrecord_sdb_extinst_valor_actual: 0 } });
-                jeLines.push({ kind: 'inst_baja', cta: ctaInst, ctaContra, monto: valorAnt, instId: id, moneda, tc });
+                // Baja total → devolver el valor anterior completo al cash de la misma moneda.
+                if (valorAnt > 0) {
+                    const cashIdFondeo = findCashByComitenteMoneda(comitenteId, moneda);
+                    if (cashIdFondeo) _aplicarACash(cashIdFondeo, valorAnt);
+                    else errores.push(`Instrumento ${id}: baja sin cash en esa moneda; no se pudo devolver ${valorAnt}.`);
+                }
+                jeLines.push({ kind: 'inst_baja', cta: ctaInst, ctaContra: CUENTA_INTERESES_INVERSIONES, monto: valorAnt, instId: id, moneda, tc });
                 cambios.bajas++;
                 continue;
             }
 
             if (id && valor !== null) {
-                const valorAnt = parseNum(getFieldValue(REC_INSTRUMENTO, id, 'custrecord_sdb_extinst_valor_actual'));
-                const dif = valor - (valorAnt || 0);
+                const valorAnt = parseNum(getFieldValue(REC_INSTRUMENTO, id, 'custrecord_sdb_extinst_valor_actual')) || 0;
+                const dif = parseFloat((valor - valorAnt).toFixed(2));
                 if (dif !== 0) {
+                    const labelInst = nombre || `Instrumento ${id}`;
+                    const cashIdFondeo = findCashByComitenteMoneda(comitenteId, moneda);
+                    // Escenario 2: si el valor sube, descontar la diferencia del cash (validando que alcance).
+                    if (dif > 0) {
+                        if (!cashIdFondeo) {
+                            errores.push(`"${labelInst}": no hay cash en esa moneda para descontar la diferencia; no se actualizó.`);
+                            continue;
+                        }
+                        if (dif > _saldoCash(cashIdFondeo)) {
+                            errores.push(`"${labelInst}": la diferencia (${dif}) supera el saldo de cash disponible (${_saldoCash(cashIdFondeo)}) en esa moneda; no se actualizó.`);
+                            continue;
+                        }
+                    }
                     const ctaInst = getFieldValue(REC_INSTRUMENTO, id, 'custrecord_sdb_extinst_cta_contable');
                     const ctaRes = getCtaResultadoTipo(tipo);
                     record.submitFields({
@@ -576,6 +702,9 @@ define(['N/ui/serverWidget', 'N/search', 'N/record', 'N/runtime', 'N/log', 'N/ur
                             custrecord_sdb_extinst_tc: tc || ''
                         }
                     });
+                    // Impacto en cash: sube → debita la diferencia; baja → acredita |diferencia|.
+                    if (cashIdFondeo) _aplicarACash(cashIdFondeo, -dif);
+                    else errores.push(`"${labelInst}": no hay cash en esa moneda; no se pudo devolver la diferencia (${Math.abs(dif)}).`);
                     jeLines.push({ kind: 'inst_update', cta: ctaInst, ctaContra: ctaRes, monto: dif, instId: id, moneda, tc });
                     cambios.updates++;
                 }
@@ -583,6 +712,17 @@ define(['N/ui/serverWidget', 'N/search', 'N/record', 'N/runtime', 'N/log', 'N/ur
             }
 
             if (!id && valor !== null && valor !== 0 && nombre) {
+                // Escenario 1: el alta se fondea con el cash de la misma moneda de la cuenta comitente.
+                const cashIdFondeo = findCashByComitenteMoneda(comitenteId, moneda);
+                if (!cashIdFondeo) {
+                    errores.push(`"${nombre}": no hay cash en esa moneda para la cuenta comitente; no se registró.`);
+                    continue;
+                }
+                if (valor > _saldoCash(cashIdFondeo)) {
+                    errores.push(`"${nombre}": el valor (${valor}) supera el saldo de cash disponible (${_saldoCash(cashIdFondeo)}) en esa moneda; no se registró.`);
+                    continue;
+                }
+
                 const nuevo = record.create({ type: REC_INSTRUMENTO });
                 nuevo.setValue('name', nombre);
                 nuevo.setValue('custrecord_sdb_extinst_comitente', comitenteId);
@@ -596,10 +736,23 @@ define(['N/ui/serverWidget', 'N/search', 'N/record', 'N/runtime', 'N/log', 'N/ur
                 nuevo.setValue('custrecord_sdb_extinst_fecha_actual', parseDate(fecha));
                 if (tc) nuevo.setValue('custrecord_sdb_extinst_tc', tc);
                 const nuevoInstId = nuevo.save();
-                jeLines.push({ kind: 'inst_alta', cta, ctaContra, monto: valor, instId: nuevoInstId, moneda, tc });
+
+                // Descontar el valor del cash de fondeo (se persiste al final del proceso).
+                _aplicarACash(cashIdFondeo, -valor);
+
+                jeLines.push({ kind: 'inst_alta', cta, ctaContra: CUENTA_INTERESES_INVERSIONES, monto: valor, instId: nuevoInstId, moneda, tc });
                 cambios.altas++;
             }
         }
+
+        // Persistir el descuento de saldo en los cash de fondeo (Escenario 1).
+        Object.keys(cashAActualizar).forEach(cashId => {
+            try {
+                record.submitFields({ type: REC_CASH, id: cashId, values: { custrecord_sdb_extcash_saldo_actual: cashAActualizar[cashId] } });
+            } catch (e) {
+                errores.push(`No se pudo actualizar el saldo del cash ${cashId}: ${e.message}`);
+            }
+        });
 
         let jeUrls = [];
         let jeSkippedMsg = '';
@@ -612,6 +765,7 @@ define(['N/ui/serverWidget', 'N/search', 'N/record', 'N/runtime', 'N/log', 'N/ur
         }
 
         let msg = `Procesado. Altas: ${cambios.altas} · Updates: ${cambios.updates} · Bajas: ${cambios.bajas}.${jeSkippedMsg}`;
+        if (errores.length) msg += ` <span style="color:#c62828;">⚠ ${escapeHtml(errores.join(' | '))}</span>`;
         if (jeUrls.length) {
             const links = jeUrls.map((u, i) => `<a href="${u}" target="_blank">Ver JE${jeUrls.length > 1 ? ' ' + (i + 1) : ''}</a>`).join(' · ');
             msg += ` ${links}`;
@@ -721,6 +875,22 @@ define(['N/ui/serverWidget', 'N/search', 'N/record', 'N/runtime', 'N/log', 'N/ur
         return id;
     }
 
+    // ¿Hay al menos un instrumento activo de esa cuenta comitente en esa moneda?
+    function existeInstrumentoActivoEnMoneda(comitenteId, monedaId) {
+        if (!comitenteId || !monedaId) return false;
+        let existe = false;
+        search.create({
+            type: REC_INSTRUMENTO,
+            filters: [
+                ['custrecord_sdb_extinst_comitente', 'anyof', comitenteId],
+                'AND', ['custrecord_sdb_extinst_moneda', 'anyof', monedaId],
+                'AND', ['isinactive', 'is', 'F']
+            ],
+            columns: ['internalid']
+        }).run().each(() => { existe = true; return false; });
+        return existe;
+    }
+
     function getSubsidiaryDeAccount(accountId) {
         if (!accountId) return '';
         try {
@@ -801,6 +971,36 @@ define(['N/ui/serverWidget', 'N/search', 'N/record', 'N/runtime', 'N/log', 'N/ur
     function escapeHtml(s) {
         if (s === null || s === undefined) return '';
         return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
+    // TC de (moneda → ARS) a una fecha. Devuelve 1 si es la moneda base o si falla el lookup.
+    function _tipoCambio(monedaId, fecha) {
+        if (!monedaId || String(monedaId) === BASE_CURRENCY_ID) return 1;
+        try {
+            const rate = currency.exchangeRate({
+                source: monedaId,
+                target: BASE_CURRENCY_ID,
+                date: fecha || new Date()
+            });
+            return rate > 0 ? rate : 1;
+        } catch (e) {
+            log.error('_tipoCambio', `moneda=${monedaId} fecha=${fecha} err=${e.message}`);
+            return 1;
+        }
+    }
+
+    // Fecha de hoy como 'yyyy-mm-dd' (local), para usar como default en los inputs date.
+    function _hoyIso() {
+        const d = new Date();
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    }
+
+    // Parsea 'yyyy-mm-dd' como fecha local (evita el corrimiento de día por UTC).
+    function _parseTcDate(s) {
+        const m = String(s).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+        if (m) return new Date(parseInt(m[1], 10), parseInt(m[2], 10) - 1, parseInt(m[3], 10));
+        const d = new Date(s);
+        return isNaN(d.getTime()) ? new Date() : d;
     }
 
     return { onRequest };
