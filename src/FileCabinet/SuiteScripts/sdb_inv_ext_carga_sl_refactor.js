@@ -11,7 +11,7 @@
  * Al confirmar genera un Journal Entry con las diferencias y actualiza los records.
  */
 
-define(['N/ui/serverWidget', 'N/search', 'N/record', 'N/runtime', 'N/log', 'N/url', 'N/redirect', 'N/currency'], (serverWidget, search, record, runtime, log, url, redirect, currency) => {
+define(['N/ui/serverWidget', 'N/search', 'N/record', 'N/runtime', 'N/log', 'N/url', 'N/redirect', 'N/format'], (serverWidget, search, record, runtime, log, url, redirect, format) => {
 
     const GLOBALS = {
         SUBSIDIARY_ID: '6',                                  // Subsidiaria fija para los asientos del exterior
@@ -19,6 +19,8 @@ define(['N/ui/serverWidget', 'N/search', 'N/record', 'N/runtime', 'N/log', 'N/ur
         CTA_INTERESES_INVERSIONES: '1025',                   // Contrapartida de alta/baja/ajuste de instrumentos
         CTA_INVERSIONES_EXTERIOR: '222',                     // (reservada — ver nota de JE pendiente)
         SUBTIPO_LIST: 'customlist_sdb_inv_ext_subtipo',
+        SAVED_SEARCH_REPORTE: 'customsearch_sdb_reporte_inst_exterior',
+        TC_BNA_TIPO: '2',                                    // Tipo de cotización BNA a usar para el TC
         JE_BODY_COMITENTE: 'custbody_sdb_inv_ext_comitente',
         JE_COL_INSTRUMENTO: 'custcol_sdb_inv_ext_instrumento',
         JE_COL_CASH: 'custcol_sdb_inv_ext_cash'
@@ -56,7 +58,17 @@ define(['N/ui/serverWidget', 'N/search', 'N/record', 'N/runtime', 'N/log', 'N/ur
 
     const EXT_TIPO = {
         RECORD_TYPE: 'customrecord_sdb_inv_ext_tipo',
-        CTA_RESULTADO: 'custrecord_sdb_exttipo_cta_resultado'
+        CTA_RESULTADO: 'custrecord_sdb_exttipo_cta_resultado',
+        CUENTA: 'custrecord_sdb_exttipo_cuenta'   // Cuenta contable del instrumento, según su tipo
+    };
+
+    // Cotizaciones BNA — fuente del tipo de cambio (moneda → ARS) por fecha.
+    const TC_BNA = {
+        RECORD_TYPE: 'customrecord_sdb_loc_ar_tc_bna',
+        FECHA: 'custrecord_sdb_fecha_cotizacion',
+        TIPO: 'custrecord_sdb_tipo_cotizacion_bna',
+        MONEDA: 'custrecord_sdb_moneda_cotizacion_bna',
+        TASA_COMPRA: 'custrecord_sdb_tasa_compra_cotiza_bna'
     };
 
     // ─────────────────────────── ENTRY ────────────────────────────────
@@ -244,12 +256,12 @@ define(['N/ui/serverWidget', 'N/search', 'N/record', 'N/runtime', 'N/log', 'N/ur
         html += '<div class="ext-wrap">';
         html += '<table class="ext-tbl" id="tbl_inst"><thead><tr>'
             + '<th>ID</th><th>Nombre</th><th>ISIN</th><th>Tipo</th><th>Subtipo</th>'
-            + '<th>Moneda</th><th>Cuenta Contable</th>'
+            + '<th>Moneda</th>'
             + '<th class="num">Cant. Actual</th><th class="num">Cant. Nueva</th>'
             + '<th class="num">Valor Actual</th><th class="num">Valor Nuevo</th>'
             + '<th>Fecha</th><th class="num">TC</th><th>Baja</th>'
             + '</tr></thead><tbody>';
-        instActual.forEach((inst, i) => { html += rowInstExistente(inst, i, cuentas, tcHoy(inst.moneda)); });
+        instActual.forEach((inst, i) => { html += rowInstExistente(inst, i, tcHoy(inst.moneda)); });
         html += '</tbody></table></div>';
         html += `<button type="button" class="ext-btn" onclick="extAddInst()">+ Agregar instrumento</button>`;
 
@@ -285,8 +297,24 @@ define(['N/ui/serverWidget', 'N/search', 'N/record', 'N/runtime', 'N/log', 'N/ur
         });
 
         tabla.defaultValue = html;
+        
         // Botón Volver → pantalla inicial (Suitelet sin comitente), vía window.open en extVolver.
         form.addButton({ id: 'custpage_volver', label: 'Volver', functionName: 'extVolver' });
+
+        // Botón Reporte → abre el saved search de instrumentos filtrado por la cuenta comitente.
+        const reporteUrl = url.resolveTaskLink({
+            id: 'LIST_SEARCHRESULTS',
+            params: {
+                searchid: GLOBALS.SAVED_SEARCH_REPORTE,
+                CUSTRECORD_SDB_EXTINST_COMITENTE: comitenteId
+            }
+        });
+        form.addButton({
+            id: 'custpage_btn_reporte',
+            label: 'Reporte',
+            functionName: `window.open('${reporteUrl}', '_blank')`
+        });
+
         form.addSubmitButton({ label: 'Confirmar Cierre' });
         context.response.writePage(form);
     }
@@ -360,7 +388,6 @@ define(['N/ui/serverWidget', 'N/search', 'N/record', 'N/runtime', 'N/log', 'N/ur
                     + '<td>'+selectHtml('inst_tipo_'+i, window._tipos)+'</td>'
                     + '<td>'+selectHtml('inst_subtipo_'+i, window._subtipos)+'</td>'
                     + '<td>'+selectHtml('inst_moneda_'+i, window._monedas, 'onchange="extLookupTc(&#39;inst&#39;,'+i+')"')+'</td>'
-                    + '<td>'+cuentaInputHtml('inst_cta_'+i, '')+'</td>'
                     + '<td class="num">-</td>'
                     + '<td class="num"><input type="text" name="inst_cant_'+i+'" /></td>'
                     + '<td class="num">-</td>'
@@ -515,7 +542,7 @@ define(['N/ui/serverWidget', 'N/search', 'N/record', 'N/runtime', 'N/log', 'N/ur
         </tr>`;
     }
 
-    function rowInstExistente(inst, i, cuentas, tcDefault) {
+    function rowInstExistente(inst, i, tcDefault) {
         return `<tr>
             <td><input type="hidden" name="inst_id_${i}" value="${inst.id}" />${inst.id}</td>
             <td>${escapeHtml(inst.nombre)}</td>
@@ -523,7 +550,6 @@ define(['N/ui/serverWidget', 'N/search', 'N/record', 'N/runtime', 'N/log', 'N/ur
             <td>${escapeHtml(inst.tipoName)}<input type="hidden" name="inst_tipo_${i}" value="${inst.tipo}" /></td>
             <td>${escapeHtml(inst.subtipoName || '')}<input type="hidden" name="inst_subtipo_${i}" value="${inst.subtipo || ''}" /></td>
             <td>${escapeHtml(inst.monedaName)}<input type="hidden" name="inst_moneda_${i}" value="${inst.moneda}" /></td>
-            <td>${cuentaInputServerHtml(`inst_cta_${i}`, inst.cta, cuentas)}</td>
             <td class="num">${fmt(inst.cantidad)}</td>
             <td class="num"><input type="text" name="inst_cant_${i}" value="" placeholder="${fmt(inst.cantidad)}" /></td>
             <td class="num">${fmt(inst.valorActual)}</td>
@@ -642,9 +668,9 @@ define(['N/ui/serverWidget', 'N/search', 'N/record', 'N/runtime', 'N/log', 'N/ur
         search.create({
             type: EXT_TIPO.RECORD_TYPE,
             filters: [['isinactive', 'is', 'F']],
-            columns: ['internalid', 'name', EXT_TIPO.CTA_RESULTADO]
+            columns: ['internalid', 'name', EXT_TIPO.CTA_RESULTADO, EXT_TIPO.CUENTA]
         }).run().each(r => {
-            res.push({ id: r.getValue('internalid'), name: r.getValue('name'), ctaResultado: r.getValue(EXT_TIPO.CTA_RESULTADO) });
+            res.push({ id: r.getValue('internalid'), name: r.getValue('name'), ctaResultado: r.getValue(EXT_TIPO.CTA_RESULTADO), cuenta: r.getValue(EXT_TIPO.CUENTA) });
             return true;
         });
         return res;
@@ -699,13 +725,13 @@ define(['N/ui/serverWidget', 'N/search', 'N/record', 'N/runtime', 'N/log', 'N/ur
         // ── Carga única (evita N+1): mapas por id y por moneda ──
         const cashList = buscarCash(comitenteId);
         const instList = buscarInstrumentos(comitenteId, '');       // todos, sin filtro de tipo
-        const cashById = {}, cashByMoneda = {}, instById = {}, monedasConInst = {}, ctaResByTipo = {};
+        const cashById = {}, cashByMoneda = {}, instById = {}, monedasConInst = {}, ctaResByTipo = {}, ctaCuentaByTipo = {};
         cashList.forEach(c => { cashById[c.id] = c; if (!(String(c.moneda) in cashByMoneda)) cashByMoneda[String(c.moneda)] = c.id; });
         // Cash de cualquier comitente — un origen de transferencia puede ser cuenta de otro comitente.
         const cashByIdAll = {};
         buscarCashGlobal().forEach(c => { cashByIdAll[c.id] = c; });
         instList.forEach(x => { instById[x.id] = x; monedasConInst[String(x.moneda)] = true; });
-        buscarTipos().forEach(t => { ctaResByTipo[t.id] = t.ctaResultado; });
+        buscarTipos().forEach(t => { ctaResByTipo[t.id] = t.ctaResultado; ctaCuentaByTipo[t.id] = t.cuenta; });
 
         const jeLines = [];
         const cambios = { altas: 0, updates: 0, bajas: 0, transferencias: 0 };
@@ -858,7 +884,6 @@ define(['N/ui/serverWidget', 'N/search', 'N/record', 'N/runtime', 'N/log', 'N/ur
             const tipo = request.parameters[`inst_tipo_${i}`];
             const subtipo = request.parameters[`inst_subtipo_${i}`];
             const moneda = request.parameters[`inst_moneda_${i}`];
-            const cta = request.parameters[`inst_cta_${i}`];
             const cant = parseNum(request.parameters[`inst_cant_${i}`]);
             const valor = parseNum(request.parameters[`inst_valor_${i}`]);
             const fecha = request.parameters[`inst_fecha_${i}`];
@@ -876,7 +901,7 @@ define(['N/ui/serverWidget', 'N/search', 'N/record', 'N/runtime', 'N/log', 'N/ur
                     if (cashId) _aplicarACash(cashId, valorAnt);
                     else errores.push(`Instrumento ${id}: baja sin cash en esa moneda; no se pudo devolver ${valorAnt}.`);
                 }
-                jeLines.push({ kind: 'inst_baja', cta: x ? x.cta : '', ctaContra: GLOBALS.CTA_INTERESES_INVERSIONES, monto: valorAnt, instId: id, moneda, tc });
+                jeLines.push({ kind: 'inst_baja', cta: ctaCuentaByTipo[tipo] || (x ? x.cta : ''), ctaContra: GLOBALS.CTA_INTERESES_INVERSIONES, monto: valorAnt, instId: id, moneda, tc });
                 cambios.bajas++;
                 return;
             }
@@ -907,14 +932,16 @@ define(['N/ui/serverWidget', 'N/search', 'N/record', 'N/runtime', 'N/log', 'N/ur
                 if (dif !== 0) {
                     if (cashId) _aplicarACash(cashId, -dif);
                     else errores.push(`"${labelInst}": no hay cash en esa moneda; no se pudo devolver la diferencia (${Math.abs(dif)}).`);
-                    jeLines.push({ kind: 'inst_update', cta: x ? x.cta : '', ctaContra: ctaResByTipo[tipo] || '', monto: dif, instId: id, moneda, tc });
+                    jeLines.push({ kind: 'inst_update', cta: ctaCuentaByTipo[tipo] || (x ? x.cta : ''), ctaContra: ctaResByTipo[tipo] || '', monto: dif, instId: id, moneda, tc });
                 }
                 cambios.updates++;
                 return;
             }
 
-            // Alta → fondeada con el cash de la misma moneda.
+            // Alta → fondeada con el cash de la misma moneda. La cuenta contable sale del tipo.
             if (!id && valor !== null && valor !== 0 && nombre) {
+                const cta = ctaCuentaByTipo[tipo] || '';
+                if (!cta) { errores.push(`"${nombre}": el tipo de instrumento no tiene cuenta contable configurada; no se registró.`); return; }
                 const cashId = _cashIdDeMoneda(moneda);
                 if (!cashId) { errores.push(`"${nombre}": no hay cash en esa moneda para la cuenta comitente; no se registró.`); return; }
                 if (valor > _saldoCash(cashId)) {
@@ -1104,15 +1131,37 @@ define(['N/ui/serverWidget', 'N/search', 'N/record', 'N/runtime', 'N/log', 'N/ur
         return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
     }
 
-    // TC de (moneda → ARS) a una fecha. Devuelve 1 si es la moneda base o si falla el lookup.
+    // TC (moneda → ARS) desde las cotizaciones BNA (customrecord_sdb_loc_ar_tc_bna) a una fecha.
+    // Filtros: tipo de cotización = GLOBALS.TC_BNA_TIPO, moneda = la de la fila, fecha <= la dada.
+    // Se toma la cotización más reciente que no supere la fecha (fecha DESC); si hay varias el
+    // mismo día, la última modificada (lastmodified DESC). Ej: para el 24 sin cotización, usa la del 23.
+    // Devuelve 1 para la moneda base; null si no hay cotización o falla (el TC queda vacío para cargar a mano).
     function _tipoCambio(monedaId, fecha) {
         if (!monedaId || String(monedaId) === GLOBALS.BASE_CURRENCY_ID) return 1;
+        if (!fecha) return null;
         try {
-            const rate = currency.exchangeRate({ source: monedaId, target: GLOBALS.BASE_CURRENCY_ID, date: fecha || new Date() });
-            return rate > 0 ? rate : 1;
+            const fechaStr = format.format({ value: fecha, type: format.Type.DATE });
+            const filas = search.create({
+                type: TC_BNA.RECORD_TYPE,
+                filters: [
+                    [TC_BNA.TIPO, 'anyof', GLOBALS.TC_BNA_TIPO],
+                    'AND', [TC_BNA.MONEDA, 'anyof', monedaId],
+                    'AND', [TC_BNA.FECHA, 'onorbefore', fechaStr]
+                ],
+                columns: [
+                    search.createColumn({ name: TC_BNA.TASA_COMPRA }),
+                    search.createColumn({ name: TC_BNA.FECHA, sort: search.Sort.DESC }),
+                    search.createColumn({ name: 'lastmodified', sort: search.Sort.DESC })
+                ]
+            }).run().getRange({ start: 0, end: 1 });
+            if (filas.length) {
+                const rate = parseFloat(filas[0].getValue({ name: TC_BNA.TASA_COMPRA }));
+                if (rate > 0) return rate;
+            }
+            return null;
         } catch (error) {
             log.error('_tipoCambio', `moneda=${monedaId} fecha=${fecha} err=${error.message}`);
-            return 1;
+            return null;
         }
     }
 
